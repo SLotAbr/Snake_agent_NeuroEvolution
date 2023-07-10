@@ -1,6 +1,7 @@
 from copy import deepcopy
 from pickle import dump
 from random import randint
+from torch import Tensor, zeros
 # from sys import argv
 
 FIELD_SIZE = 9
@@ -34,8 +35,38 @@ for y in range(FIELD_SIZE):
 game_state[snake_postions[0][1]][snake_postions[0][0]] = TILE_TYPES["HEAD"]
 history_track.append((time_counter, score_counter, deepcopy(game_state)))
 
+
+def is_position_visibile(coords,field_size):
+	return (0<coords[0]<field_size-1) and (0<coords[1]<field_size-1)
+
+
+def encode_game_state(game_state, 
+					  TYPE_dictionary, 
+					  field_size, 
+					  head_position, 
+					  direction):
+	reception_range = range(-(field_size-3), field_size-2)
+	encoding = zeros((len(reception_range),\
+					  len(reception_range),\
+					  len(TYPE_dictionary)))
+	mask = [(head_position[0] + i, head_position[1] + j)
+				for i in reception_range
+				for j in reception_range]
+	for x, y in mask:
+		item = TILE_TYPES["BARRIER"] if not is_position_visibile((x,y),field_size) \
+										else game_state[y][x]
+		encoding[y][x][item] = 1
+	return encoding
+
+
 while not is_crashed:
 	# encode game_state and send it to the agent
+	# reception_field = encode_game_state(game_state,\
+	# 									TILE_TYPES,\
+	# 									FIELD_SIZE,\
+	# 									snake_postions[0],\
+	# 									-1)
+	# action = agent_API(reception_field)
 	# could be: -1,0,1
 	action = 1 if randint(0,8)>5 else 0
 	direction_id = (direction_id+action)%4

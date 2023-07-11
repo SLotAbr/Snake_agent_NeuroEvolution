@@ -1,5 +1,6 @@
 import torch
-from torch import nn
+from torch import nn, Tensor
+from copy import deepcopy
 
 
 class Bare_minimum(torch.nn.Module):
@@ -17,7 +18,7 @@ class Bare_minimum(torch.nn.Module):
 			nn.ReLU(),
 			nn.MaxPool2d(kernel_size=3, stride=3)
 		)
-		self.ff = nn.Linear(9, 3) #+27=96
+		self.ff = nn.Linear(9, 3) #+30=99
 
 	def forward(self, x):
 		x = self.convolution(x)		
@@ -31,6 +32,30 @@ class Agent(object):
 		self.body = Bare_minimum()
 		self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 		self.body = self.body.to(self.device)
+		self.state_dict_info = deepcopy(self.body.state_dict())
+		self.genome_length=0
+		# key: (parameters_number, exact_tensor_size)
+		for key in self.state_dict_info:
+			parameters_number = self.state_dict_info[key].view(-1).shape[0]
+			self.genome_length+=parameters_number
+			self.state_dict_info[key] = \
+				(parameters_number, self.state_dict_info[key].shape)
+
+	def create_generator(self):
+		ids = range(self.genome_length)
+		for i in ids:
+			yield i
+
+	def set_genome(self, genome):
+		generator = create_generator()
+		new_state_dict = deepcopy(self.state_dict_info)
+		for key in new_state_dict:
+			item = Tensor(
+				[genome[next(generator)] for _ in range(new_state_dict[key][0])]
+			)
+			item = item.view(new_state_dict[key][1])
+			new_state_dict[key] = item
+		self.body.load_state_dict(state_dict)
 
 	def __call__(self, x):
 		x = x.to(self.device)

@@ -46,16 +46,18 @@ def encode_game_state(game_state,
 					  head_position, 
 					  direction):
 	reception_range = range(-(field_size-3), field_size-2)
-	encoding = zeros((len(reception_range),\
+	# (N, c_in, H, W)
+	encoding = zeros((1,\
+					  len(TYPE_dictionary),\
 					  len(reception_range),\
-					  len(TYPE_dictionary)))
+					  len(reception_range)))
 	mask = [(head_position[0] + i, head_position[1] + j)
 				for i in reception_range
 				for j in reception_range]
 	for x, y in mask:
 		item = TILE_TYPES["BARRIER"] if not is_position_visibile((x,y),field_size) \
 										else game_state[y][x]
-		encoding[y][x][item] = 1
+		encoding[0][item][y][x] = 1
 	return encoding
 
 

@@ -15,13 +15,13 @@ class Bare_minimum(torch.nn.Module):
 			nn.Conv2d(in_channels=2, out_channels=1, kernel_size=3, padding=0), #+19=69
 			nn.Sigmoid(),
 			nn.ReLU(),
-			nn.MaxPool(kernel_size=3, stride=3)
+			nn.MaxPool2d(kernel_size=3, stride=3)
 		)
 		self.ff = nn.Linear(9, 3) #+27=96
 
 	def forward(self, x):
 		x = self.convolution(x)		
-		x = x.view(x.size(0) * x.size(1))
+		x = x.view(x.size(0), x.size(1) * x.size(2) * x.size(3))
 		x = self.ff(x)	
 		return x
 	

@@ -61,4 +61,4 @@ class Agent(object):
 		x = x.to(self.device)
 		with torch.no_grad():
 			action_space = self.body.forward(x)
-			return torch.argmax(action_space)
+			return torch.argmax(action_space)-1

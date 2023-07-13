@@ -1,5 +1,4 @@
 import os
-from agents import Agent
 from copy import deepcopy
 from pickle import dump
 from random import randint
@@ -17,18 +16,21 @@ def encode_game_state(game_state,
 					  head_position, 
 					  direction):
 	reception_range = range(-(field_size-3), field_size-2)
+	rr_len = len(reception_range)
 	# (N, c_in, H, W)
 	encoding = zeros((1,\
 					  len(TYPE_dictionary),\
-					  len(reception_range),\
-					  len(reception_range)))
-	mask = [(head_position[0] + i, head_position[1] + j)
+					  rr_len,\
+					  rr_len))
+	mask = [(head_position[0] + j, head_position[1] + i)
 				for i in reception_range
 				for j in reception_range]
-	for x, y in mask:
-		item = TILE_TYPES["BARRIER"] if not is_position_visibile((x,y),field_size) \
-										else game_state[y][x]
-		encoding[0][item][y][x] = 1
+	for i in range(len(mask)):
+		item = TYPE_dictionary["BARRIER"] \
+					if not is_position_visibile(mask[i],field_size) \
+						else game_state[mask[i][1]][mask[i][0]] # [y][x]
+		encoding[0][item][i//rr_len][i%rr_len] = 1
+		
 	if not (direction==0):
 		encoding = rot90(encoding, direction, dims=[2,3])
 	return encoding
@@ -42,11 +44,9 @@ def save_replay(history_track, opt_path, progress_info):
 		dump(history_track, f)
 
 
-def run_simulation(agent_info, opt_info):
+def run_simulation(agent_info, opt_info, agent):
 	FIELD_SIZE = 9
 	# agent_path = argv[1]
-	agent = Agent()
-	agent.set_genome(agent_info[2])
 	is_crashed, time_counter, score_counter, score_list = False, 0, 0, [0]
 	history_track, snake_postions = [], [(3,2),(2,2)] 
 	food_position = tuple(randint(1, FIELD_SIZE-2) for _ in range(2))
@@ -78,14 +78,15 @@ def run_simulation(agent_info, opt_info):
 
 	while not is_crashed:
 		# encode game_state and send it to the agent
-		# reception_field = encode_game_state(game_state,\
-		# 									TILE_TYPES,\
-		# 									FIELD_SIZE,\
-		# 									snake_postions[0],\
-		# 									-1)
-		# action = agent(reception_field)
+		# print('snake_postions:',snake_postions)
+		reception_field = encode_game_state(game_state,\
+											TILE_TYPES,\
+											FIELD_SIZE,\
+											snake_postions[0],\
+											direction_id)
 		# could be: -1,0,1
-		action = 1 if randint(0,8)>5 else 0
+		action = agent(reception_field)
+		# action = 1 if randint(0,8)>5 else 0
 		direction_id = (direction_id+action)%4
 
 		# agent's action time
@@ -119,6 +120,9 @@ def run_simulation(agent_info, opt_info):
 
 		time_counter += 1
 		history_track.append((time_counter, score_counter, deepcopy(game_state)))
+
+		if (time_counter >= 100) and (score_counter < 5):
+			break
 
 	opt_id, agent_id, iter_ = opt_info[0], agent_info[0], opt_info[1]
 	save_replay(history_track,

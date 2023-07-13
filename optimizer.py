@@ -1,6 +1,7 @@
 import cma
 import numpy as np
 from agents import Agent
+from tqdm import tqdm
 from simulation_tool import run_simulation
 
 
@@ -19,10 +20,11 @@ for iteration in range(iteration_number):
 	population = es.ask()
 	fitness_list = np.zeros(es.popsize)
 
-	for i in range(es.popsize):
+	for i in tqdm(range(es.popsize)):
+		# if iteration < 10:
+		# 	population[i] +=  np.random.normal(0,4,AGENTS[agent_name])
 		agent.set_genome(population[i])
 		score_list = run_simulation((agent_name, i),('CMA_ES',iteration), agent)
-		# print(f'score_list for individual {i}, iter_{iteration}: {score_list}')
 		fitness_list[i] = objective_function(score_list, 0.95)
 		fitness_list[i] -= 0.01*np.mean(population[i]**2) #L2 norm
 

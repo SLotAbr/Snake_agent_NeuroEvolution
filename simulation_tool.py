@@ -1,3 +1,5 @@
+import os
+from agents import Agent
 from copy import deepcopy
 from pickle import dump
 from random import randint
@@ -30,16 +32,20 @@ def encode_game_state(game_state,
 	return encoding
 
 
-def save_replay(history_track, path='history_buffer/tmp/replay.pkl'):
+def save_replay(history_track, opt_path, progress_info):
+	iter_folder_path = opt_path+progress_info.split('/')[0]
+	if not os.path.exists(iter_folder_path): os.mkdir(iter_folder_path)
 	# with open('history_buffer/{agent\'s name}/replay.pkl','wb') as f:
-	with open(path,'wb') as f:
+	with open(opt_path+progress_info,'wb') as f:
 		dump(history_track, f)
 
 
-def run_simulation():
+def run_simulation(agent_info, opt_info):
 	FIELD_SIZE = 9
 	# agent_path = argv[1]
-	is_crashed, time_counter, score_counter = False, 0, 0
+	agent = Agent()
+	agent.set_genome(agent_info[2])
+	is_crashed, time_counter, score_counter, score_list = False, 0, 0, [0]
 	history_track, snake_postions = [], [(3,2),(2,2)] 
 	food_position = tuple(randint(1, FIELD_SIZE-2) for _ in range(2))
 	# "UP":0, "RIGHT":1, "DOWN":2, "LEFT":3
@@ -75,7 +81,7 @@ def run_simulation():
 		# 									FIELD_SIZE,\
 		# 									snake_postions[0],\
 		# 									-1)
-		# action = agent_API(reception_field)
+		# action = agent(reception_field)
 		# could be: -1,0,1
 		action = 1 if randint(0,8)>5 else 0
 		direction_id = (direction_id+action)%4
@@ -87,6 +93,7 @@ def run_simulation():
 
 		if coord_comparsion((new_x,new_y), food_position):
 			score_counter+=1
+			score_list.append(1)
 			game_state[snake_postions[0][1]][snake_postions[0][0]] = TILE_TYPES["BODY"]
 			while True:
 				food_position = tuple(randint(1, FIELD_SIZE-2) for _ in range(2))
@@ -95,10 +102,12 @@ def run_simulation():
 					break
 		elif game_state[new_y][new_x]==TILE_TYPES["BARRIER"] or\
 			  (new_x,new_y) in snake_postions:
+			score_list.append(0)
 			game_state[snake_postions[-1][1]][snake_postions[-1][0]] = TILE_TYPES["EMPTY"]
 			game_state[snake_postions[0][1]][snake_postions[0][0]] = TILE_TYPES["BODY"]
 			is_crashed = True
 		else:
+			score_list.append(0)
 			game_state[snake_postions[-1][1]][snake_postions[-1][0]] = TILE_TYPES["EMPTY"]
 			game_state[snake_postions[0][1]][snake_postions[0][0]] = TILE_TYPES["BODY"]
 			snake_postions.pop()
@@ -109,4 +118,9 @@ def run_simulation():
 		time_counter += 1
 		history_track.append((time_counter, score_counter, deepcopy(game_state)))
 
-	save_replay(history_track)
+	opt_id, agent_id, iter_ = opt_info[0], agent_info[0], opt_info[1]
+	save_replay(history_track,
+		f'history_buffer/{opt_id}/{agent_id}/',
+		f'{iter_}/individual_{str(agent_info[1])}.pkl')
+
+	return score_list

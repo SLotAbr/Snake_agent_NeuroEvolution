@@ -47,7 +47,7 @@ class Agent(object):
 			yield i
 
 	def set_genome(self, genome):
-		generator = create_generator()
+		generator = self.create_generator()
 		new_state_dict = deepcopy(self.state_dict_info)
 		for key in new_state_dict:
 			item = Tensor(
@@ -55,10 +55,10 @@ class Agent(object):
 			)
 			item = item.view(new_state_dict[key][1])
 			new_state_dict[key] = item
-		self.body.load_state_dict(state_dict)
+		self.body.load_state_dict(new_state_dict)
 
 	def __call__(self, x):
 		x = x.to(self.device)
 		with torch.no_grad():
 			action_space = self.body.forward(x)
-			return action_space
+			return torch.argmax(action_space)

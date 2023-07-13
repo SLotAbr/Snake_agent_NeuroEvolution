@@ -3,7 +3,7 @@ from agents import Agent
 from copy import deepcopy
 from pickle import dump
 from random import randint
-from torch import Tensor, zeros
+from torch import Tensor, rot90, zeros
 # from sys import argv
 
 
@@ -29,6 +29,8 @@ def encode_game_state(game_state,
 		item = TILE_TYPES["BARRIER"] if not is_position_visibile((x,y),field_size) \
 										else game_state[y][x]
 		encoding[0][item][y][x] = 1
+	if not (direction==0):
+		encoding = rot90(encoding, direction, dims=[2,3])
 	return encoding
 
 
@@ -121,6 +123,6 @@ def run_simulation(agent_info, opt_info):
 	opt_id, agent_id, iter_ = opt_info[0], agent_info[0], opt_info[1]
 	save_replay(history_track,
 		f'history_buffer/{opt_id}/{agent_id}/',
-		f'{iter_}/individual_{str(agent_info[1])}.pkl')
+		f'iteration_{iter_}/individual_{str(agent_info[1])}.pkl')
 
 	return score_list

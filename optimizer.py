@@ -24,6 +24,7 @@ for iteration in range(iteration_number):
 		score_list = run_simulation((agent_name, i),('CMA_ES',iteration), agent)
 		# print(f'score_list for individual {i}, iter_{iteration}: {score_list}')
 		fitness_list[i] = objective_function(score_list, 0.95)
+		fitness_list[i] -= 0.01*np.mean(population[i]**2) #L2 norm
 
 	es.tell(population, fitness_list)	
 	print(f'max fitness score at iteration {iteration}: {max(fitness_list)}')

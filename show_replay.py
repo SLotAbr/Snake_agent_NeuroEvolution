@@ -4,16 +4,28 @@ from pickle import load
 from sys import argv
 
 
+def path2individual_replay(iter_,n):
+	return f'history_buffer/CMA_ES/Bare_minimum/iteration_{iter_}/individual_{n}.pkl'
+
+
 def load_history(argv):
+	mode = ''
 	if len(argv)>1:
-		iter_ = argv[1]
-		n = argv[2]
-		path = f'history_buffer/CMA_ES/Bare_minimum/iteration_{iter_}/individual_{n}.pkl'
+		if len(argv)==3:
+			mode, iter_ = argv[1], argv[2]
+			if mode == 'top-5':
+				iteration_info_path = f'history_buffer/CMA_ES/Bare_minimum/iteration_{iter_}/iteration_info.pkl'
+				with open(iteration_info_path, 'rb') as f:
+					_, _, scores = load(f)
+				return _, scores
+		elif mode == 'single_replay':
+			iter_, n = argv[2], argv[3]
+			path = path2individual_replay(iter_,n)
 	else:
 		path = 'history_buffer/tmp/replay.pkl'
 	with open(path, 'rb') as f:
 		history_track = load(f)
-	return history_track
+	return history_track, []
 
 
 def display_history_file(history_track):
@@ -43,4 +55,15 @@ def display_history_file(history_track):
 		root.update()
 		sleep(0.1)
 
-display_history_file(load_history(argv))
+
+history_track, scores = load_history(argv)
+if not scores:
+	display_history_file(history_track)
+else:
+	print(f'top individuals for iter {argv[2]} are: {scores[:5]}')
+	for ind_n in scores[:5]:
+		path = path2individual_replay(argv[2], ind_n)
+		with open(path, 'rb') as f:
+			history_track = load(f)
+		display_history_file(history_track)
+		sleep(0.5)

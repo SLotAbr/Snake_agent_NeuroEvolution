@@ -58,7 +58,7 @@ def run_simulation(agent_info, opt_info, agent):
 				  "HEAD"   :2,
 				  "FOOD"   :3,
 				  "BARRIER":4}
-	game_state = []
+	game_state = []; action_list = []
 	coord_comparsion = lambda a,b: a[0]==b[0] and a[1]==b[1]
 	for y in range(FIELD_SIZE):
 		y_line = []
@@ -86,6 +86,7 @@ def run_simulation(agent_info, opt_info, agent):
 											direction_id)
 		# could be: -1,0,1
 		action = agent(reception_field)
+		action_list.append(int(action))
 		# action = 1 if randint(0,8)>5 else 0
 		direction_id = (direction_id+action)%4
 
@@ -123,10 +124,13 @@ def run_simulation(agent_info, opt_info, agent):
 
 		if (time_counter >= 100) and (score_counter < 5):
 			break
+		if (len(action_list) >= 7) and (len(set(action_list[-7:]))==1):
+			score_list[0] = -1000
+			break
 
 	opt_id, agent_id, iter_ = opt_info[0], agent_info[0], opt_info[1]
 	save_replay(history_track,
 		f'history_buffer/{opt_id}/{agent_id}/',
 		f'iteration_{iter_}/individual_{str(agent_info[1])}.pkl')
 
-	return score_list
+	return score_list, score_counter

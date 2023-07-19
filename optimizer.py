@@ -10,11 +10,15 @@ def objective_function(score_list, discount):
 	return sum([score_list[t]*(discount**t) for t in range(len(score_list))])
 
 
-def make_checkpoint(last_iter, opt_params, population_params):
+def make_checkpoint(last_iter, opt_params, opt_metrics, population_params):
 	agent_id = opt_params[1]
 	path = f'history_buffer/CMA_ES/{agent_id}/optimizer_info.pkl'
 	with open(path,'wb') as f:
 		dump(opt_params+(last_iter,), f)
+
+	path = f'history_buffer/CMA_ES/{agent_id}/optimizer_metrics.pkl'
+	with open(path,'wb') as f:
+		dump(opt_metrics, f)
 
 	path = f'history_buffer/CMA_ES/{agent_id}/iteration_{last_iter}/iteration_info.pkl'
 	with open(path,'wb') as f:
@@ -33,12 +37,12 @@ agent = Agent(agent_name)
 DISCOUNT = 0.95
 
 es = cma.CMAEvolutionStrategy(AGENTS[agent_name] * [0], 0.5, {'popsize': 10})
+fitness_history, scores_history = [], []
 ITERATION_NUMBER = 10
 
 for iteration in range(ITERATION_NUMBER):
 	population = es.ask()
 	fitness_list = np.zeros(es.popsize)
-	fitness_history = []
 	iteration_scores = []
 
 	for i in tqdm(range(es.popsize)):
@@ -52,9 +56,11 @@ for iteration in range(ITERATION_NUMBER):
 
 	es.tell(population, fitness_list)
 	fitness_history.append(max(fitness_list))
+	scores_history.append(max(iteration_scores))
 	print(f'max fitness score at iteration {iteration}: {fitness_history[-1]}')
 
 	top_score_individuals = list(np.argsort(iteration_scores)[::-1])
-	opt_params = (es, agent_name, DISCOUNT, ITERATION_NUMBER, fitness_history)
+	opt_params = (es, agent_name, DISCOUNT, ITERATION_NUMBER)
+	opt_metrics = (fitness_history, scores_history)
 	population_params = (population, fitness_list, top_score_individuals)
-	make_checkpoint(iteration, opt_params, population_params)
+	make_checkpoint(iteration, opt_params, opt_metrics, population_params)

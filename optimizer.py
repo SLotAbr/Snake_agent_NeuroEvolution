@@ -29,7 +29,7 @@ def make_checkpoint(last_iter, opt_params, population_params):
 
 AGENTS = {'Bare_minimum':99}
 agent_name = 'Bare_minimum'
-agent = Agent()
+agent = Agent(agent_name)
 DISCOUNT = 0.95
 
 es = cma.CMAEvolutionStrategy(AGENTS[agent_name] * [0], 0.5, {'popsize': 10})

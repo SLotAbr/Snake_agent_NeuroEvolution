@@ -28,8 +28,9 @@ class Bare_minimum(torch.nn.Module):
 	
 
 class Agent(object):
-	def __init__(self):
-		self.body = Bare_minimum()
+	def __init__(self, agent_name):
+		AGENTS = {'Bare_minimum':Bare_minimum()}
+		self.body = AGENTS[agent_name]
 		self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 		self.body = self.body.to(self.device)
 		self.state_dict_info = deepcopy(self.body.state_dict())

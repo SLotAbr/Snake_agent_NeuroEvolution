@@ -1,9 +1,12 @@
 import cma
 import numpy as np
 from agents import Agent
-from tqdm import tqdm
+from os import mkdir
 from pickle import dump, load
+from tqdm import tqdm
 from simulation_tool import run_simulation
+from shutil import rmtree
+from sys import argv
 
 
 def objective_function(score_list, discount):
@@ -25,22 +28,38 @@ def make_checkpoint(last_iter, opt_params, opt_metrics, population_params):
 		dump(population_params, f)
 
 
-# def load_checkpoint():
-# 	with open(path, 'rb') as f:
-# 		_ = load(f)
-# 	return _
+def load_checkpoint(optimizer_id='CMA_ES', agent_id='Bare_minimum'):
+	path = f'history_buffer/CMA_ES/{agent_id}/optimizer_info.pkl'
+	with open(path, 'rb') as f:
+		# es, _, DISCOUNT, ITERATION_NUMBER, iter_ = load(f)
+		opt_params = load(f)
+
+	path = f'history_buffer/CMA_ES/{agent_id}/optimizer_metrics.pkl'
+	with open(path, 'rb') as f:
+		# fitness_history, scores_history = load(f)
+		opt_metrics = load(f)
+
+	return opt_params, opt_metrics
 
 
 AGENTS = {'Bare_minimum':99}
 agent_name = 'Bare_minimum'
 agent = Agent(agent_name)
-DISCOUNT = 0.95
 
-es = cma.CMAEvolutionStrategy(AGENTS[agent_name] * [0], 0.5, {'popsize': 10})
-fitness_history, scores_history = [], []
-ITERATION_NUMBER = 10
+if len(argv)==1:
+	rmtree(f'history_buffer/CMA_ES/{agent_name}/')
+	mkdir(f'history_buffer/CMA_ES/{agent_name}')
+	DISCOUNT = 0.95
+	es = cma.CMAEvolutionStrategy(AGENTS[agent_name] * [0], 0.5, {'popsize': 10})
+	fitness_history, scores_history = [], []
+	ITERATION_NUMBER, iteration = 10, 0
+elif argv[1]=='load_checkpoint':
+	opt_params, opt_metrics = \
+		load_checkpoint(optimizer_id='CMA_ES', agent_id=agent_name)
+	es, _, DISCOUNT, ITERATION_NUMBER, iteration = opt_params
+	fitness_history, scores_history = opt_metrics
 
-for iteration in range(ITERATION_NUMBER):
+for iteration in range(iteration, ITERATION_NUMBER):
 	population = es.ask()
 	fitness_list = np.zeros(es.popsize)
 	iteration_scores = []

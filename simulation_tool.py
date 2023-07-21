@@ -99,9 +99,10 @@ def run_simulation(agent_info, opt_info, agent):
 			score_counter+=1
 			score_list.append(1)
 			game_state[snake_postions[0][1]][snake_postions[0][0]] = TILE_TYPES["BODY"]
-			while True:
+			while len(snake_postions)+1 != (FIELD_SIZE-2)**2:
 				food_position = tuple(randint(1, FIELD_SIZE-2) for _ in range(2))
-				if food_position not in snake_postions:
+				if (food_position not in snake_postions) and \
+						not coord_comparsion((new_x,new_y), food_position):
 					game_state[food_position[1]][food_position[0]] = TILE_TYPES["FOOD"]
 					break
 		elif game_state[new_y][new_x]==TILE_TYPES["BARRIER"] or\
@@ -117,7 +118,7 @@ def run_simulation(agent_info, opt_info, agent):
 			snake_postions.pop()
 
 		game_state[new_y][new_x] = TILE_TYPES["HEAD"]
-		snake_postions.insert(0, [new_x,new_y])
+		snake_postions.insert(0, (new_x,new_y))
 
 		time_counter += 1
 		history_track.append((time_counter, score_counter, deepcopy(game_state)))

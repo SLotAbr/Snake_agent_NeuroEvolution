@@ -94,11 +94,66 @@ class Rule_based_agent(object):
 				((7,2), 'choice')
 			])
 		elif mask_id=='2':
-			pass
-			# self.mask = 
+			self.mask = deque([
+				((1,1), -1),
+				((1,2), -1),
+				((2,2), 1),
+				((2,3), 1),
+				((1,3), -1),
+				((1,4), -1),
+				((2,4), 1),
+				((2,5), 1),
+				((1,5), -1),
+				((1,6), 'choice'),
+				((3,7), -1),
+				((3,4), 1),
+				((4,4), 1),
+				((4,7), -1),
+				((5,7), -1),
+				((5,4), 1),
+				((6,4), 1),
+				((6,7), -1),
+				((7,7), -1),
+				((7,1), -1),
+				((6,1), -1),
+				((6,3), 1),
+				((5,3), 1),
+				((5,1), -1),
+				((4,1), -1),
+				((4,3), 1),
+				((3,3), 1),
+				((3,1), -1)
+			])
 		elif mask_id=='3':
-			pass
-			# self.mask = 
+			self.mask = deque([
+				((1,1), -1),
+				((1,3), -1),
+				((2,3), -1),
+				((2,2), 1),
+				((3,2), 1),
+				((3,5), 1),
+				((2,5), 1),
+				((2,4), -1),
+				((1,4), -1),
+				((1,7), -1),
+				((2,7), -1),
+				((2,6), 1),
+				((3,6), 1),
+				((3,7), -1),
+				((7,7), -1),
+				((7,6), -1),
+				((4,6), 1),
+				((4,5), 1),
+				((7,5), -1),
+				((7,4), -1),
+				((4,4), 1),
+				((4,3), 1),
+				((7,3), -1),
+				((7,1), -1),
+				((6,1), -1),
+				((6,2), 1),
+				((5,2), 'choice')
+			])
 		else:
 			raise ValueError
 
@@ -122,9 +177,33 @@ class Rule_based_agent(object):
 			return action
 
 		elif self.mask_id=='2':
-			pass
+			ROUTES = {-1: deque([((2,6), 1), 
+								 ((2,7), -1)]), 
+					  0 : deque([((1, 7), -1)])}
+			if food_position in [(2,6), (1,7)]:
+				if food_position in [(2,6)]:
+					action = -1
+				else:
+					action = 0
+			else:
+				action = randint(-1,0)
+			self.chosen_route = ROUTES[action]
+			return action
+
 		elif self.mask_id=='3':
-			pass
+			ROUTES = {0 : deque([((4,2), 1), 
+								 ((4,1), -1)]), 
+					  1 : deque([((5, 1), -1)])}
+			if food_position in [(4,2), (5,1)]:
+				if food_position in [(4,2)]:
+					action = 0
+				else:
+					action = 1
+			else:
+				action = randint(0,1)
+			self.chosen_route = ROUTES[action]
+			return action
+
 		else:
 			raise ValueError
 	

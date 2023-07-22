@@ -1,4 +1,5 @@
 import os
+from agents import Rule_based_agent
 from copy import deepcopy
 from pickle import dump
 from random import randint
@@ -44,15 +45,21 @@ def save_replay(history_track, opt_path, progress_info):
 		dump(history_track, f)
 
 
-def run_simulation(agent_info, opt_info, agent):
+def save_VAE_train_data(history_track, mask_id):
+	with open(f'history_buffer/VAE_data/mask_{mask_id}_replay.pkl','wb') as f:
+		dump(history_track, f)
+
+
+# def run_simulation(agent_info, opt_info, agent):
+def run_simulation():
 	FIELD_SIZE = 9
 	# agent_path = argv[1]
 	is_crashed, time_counter, score_counter, score_list = False, 0, 0, [0]
-	history_track, snake_postions = [], [(3,2),(2,2)] 
+	history_track, snake_postions = [], [(2,1),(3,1)] 
 	food_position = tuple(randint(1, FIELD_SIZE-2) for _ in range(2))
 	# "UP":0, "RIGHT":1, "DOWN":2, "LEFT":3
-	direction_id = 1
-	DIRECTION = [(0,1), (1,0), (0,-1), (-1,0)]
+	direction_id = 3
+	DIRECTION = [(0,-1), (1,0), (0,1), (-1,0)]
 	TILE_TYPES = {"EMPTY"  :0,
 				  "BODY"   :1,
 				  "HEAD"   :2,
@@ -74,19 +81,22 @@ def run_simulation(agent_info, opt_info, agent):
 				y_line.append(TILE_TYPES["EMPTY"])
 		game_state.append(y_line)
 	game_state[snake_postions[0][1]][snake_postions[0][0]] = TILE_TYPES["HEAD"]
-	history_track.append((time_counter, score_counter, deepcopy(game_state)))
+	# history_track.append((time_counter, score_counter, deepcopy(game_state)))
+	history_track.append((deepcopy(game_state),snake_postions[0],direction_id))
+	mask_id = '1'
+	agent = Rule_based_agent(mask_id=mask_id)
 
 	while not is_crashed:
 		# encode game_state and send it to the agent
-		# print('snake_postions:',snake_postions)
-		reception_field = encode_game_state(game_state,\
-											TILE_TYPES,\
-											FIELD_SIZE,\
-											snake_postions[0],\
-											direction_id)
+		# reception_field = encode_game_state(game_state,\
+		# 									TILE_TYPES,\
+		# 									FIELD_SIZE,\
+		# 									snake_postions[0],\
+		# 									direction_id)
 		# could be: -1,0,1
-		action = agent(reception_field)
-		action_list.append(int(action))
+		action = agent.get_action(snake_postions[0], food_position)
+		# action = agent(reception_field)
+		# action_list.append(int(action))
 		# action = 1 if randint(0,8)>5 else 0
 		direction_id = (direction_id+action)%4
 
@@ -121,17 +131,18 @@ def run_simulation(agent_info, opt_info, agent):
 		snake_postions.insert(0, (new_x,new_y))
 
 		time_counter += 1
-		history_track.append((time_counter, score_counter, deepcopy(game_state)))
+		# history_track.append((time_counter, score_counter, deepcopy(game_state)))
+		history_track.append((deepcopy(game_state),snake_postions[0],direction_id))
 
-		if (time_counter >= 100) and (score_counter < 5):
-			break
-		if (len(action_list) >= 7) and (len(set(action_list[-7:]))==1):
-			score_list[0] = -1000
-			break
+		# if (time_counter >= 100) and (score_counter < 5):
+		# 	break
+		# if (len(action_list) >= 7) and (len(set(action_list[-7:]))==1):
+		# 	score_list[0] = -1000
+		# 	break
 
-	opt_id, agent_id, iter_ = opt_info[0], agent_info[0], opt_info[1]
-	save_replay(history_track,
-		f'history_buffer/{opt_id}/{agent_id}/',
-		f'iteration_{iter_}/individual_{str(agent_info[1])}.pkl')
-
-	return score_list, score_counter
+	# opt_id, agent_id, iter_ = opt_info[0], agent_info[0], opt_info[1]
+	# save_replay(history_track,
+	# 	f'history_buffer/{opt_id}/{agent_id}/',
+	# 	f'iteration_{iter_}/individual_{str(agent_info[1])}.pkl')
+	save_VAE_train_data(history_track, mask_id)
+	# return score_list, score_counter

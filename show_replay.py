@@ -41,10 +41,11 @@ def display_history_file(history_track):
 	# 			  "BARRIER":4}
 	COLOR_TABLE = ["gray", "orange", "red", "green", "black"]
 
-	for time_counter, score_counter, game_state in history_track:
+	# for time_counter, score_counter, game_state in history_track:
+	for game_state, _, _ in history_track:
 		canvas.delete(ALL)
-		canvas.create_text(210, 30, text=str(score_counter), font=('Courier',34), fill="green")
-		canvas.create_text(210, 70, text=str(time_counter), font=('Courier',34), fill="black")
+		# canvas.create_text(210, 30, text=str(score_counter), font=('Courier',34), fill="green")
+		# canvas.create_text(210, 70, text=str(time_counter), font=('Courier',34), fill="black")
 
 		for y in range(len(game_state)):
 			for x in range(len(game_state[1])):
@@ -56,14 +57,18 @@ def display_history_file(history_track):
 		sleep(0.1)
 
 
-history_track, scores = load_history(argv)
-if not scores:
-	display_history_file(history_track)
-else:
-	print(f'top individuals for iter {argv[2]} are: {scores[:5]}')
-	for ind_n in scores[:5]:
-		path = path2individual_replay(argv[2], ind_n)
-		with open(path, 'rb') as f:
-			history_track = load(f)
-		display_history_file(history_track)
-		sleep(0.5)
+# history_track, scores = load_history(argv)
+# if not scores:
+# 	display_history_file(history_track)
+# else:
+# 	print(f'top individuals for iter {argv[2]} are: {scores[:5]}')
+# 	for ind_n in scores[:5]:
+# 		path = path2individual_replay(argv[2], ind_n)
+# 		with open(path, 'rb') as f:
+# 			history_track = load(f)
+# 		display_history_file(history_track)
+# 		sleep(0.5)
+
+with open('history_buffer/VAE_data/mask_1_replay.pkl', 'rb') as f:
+	history_track = load(f)
+display_history_file(history_track)

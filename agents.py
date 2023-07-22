@@ -1,6 +1,8 @@
 import torch
 from torch import nn, Tensor
 from copy import deepcopy
+from collections import deque
+from random import randint
 
 
 class Bare_minimum(torch.nn.Module):
@@ -68,9 +70,6 @@ class Agent(object):
 class Rule_based_agent(object):
 	"""Rule_based_agent could be used for 9x9 field only"""
 	def __init__(self, mask_id):
-		from collections import deque
-		from random import randint
-
 		if mask_id=='1':
 			self.mask = deque([
 				((1,1), -1),
@@ -104,6 +103,7 @@ class Rule_based_agent(object):
 			raise ValueError
 
 		self.mask_id = mask_id
+		self.chosen_route = []
 		self.position, self.action = self.get_condition((-1,-1))
 
 	def choice(self, food_position):

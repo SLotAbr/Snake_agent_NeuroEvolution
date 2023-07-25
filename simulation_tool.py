@@ -62,9 +62,8 @@ def run_simulation():
 	DIRECTION = [(0,-1), (1,0), (0,1), (-1,0)]
 	TILE_TYPES = {"EMPTY"  :0,
 				  "BODY"   :1,
-				  "HEAD"   :2,
-				  "FOOD"   :3,
-				  "BARRIER":4}
+				  "FOOD"   :2,
+				  "BARRIER":3}
 	game_state = []; action_list = []
 	coord_comparsion = lambda a,b: a[0]==b[0] and a[1]==b[1]
 	for y in range(FIELD_SIZE):
@@ -80,8 +79,7 @@ def run_simulation():
 			else:
 				y_line.append(TILE_TYPES["EMPTY"])
 		game_state.append(y_line)
-	game_state[snake_postions[0][1]][snake_postions[0][0]] = TILE_TYPES["HEAD"]
-	# history_track.append((time_counter, score_counter, deepcopy(game_state)))
+	# history_track.append((time_counter, score_counter, snake_postions[0], deepcopy(game_state)))
 	history_track.append((deepcopy(game_state),snake_postions[0],direction_id))
 	mask_id = '1'
 	agent = Rule_based_agent(mask_id=mask_id)
@@ -108,7 +106,6 @@ def run_simulation():
 		if coord_comparsion((new_x,new_y), food_position):
 			score_counter+=1
 			score_list.append(1)
-			game_state[snake_postions[0][1]][snake_postions[0][0]] = TILE_TYPES["BODY"]
 			while len(snake_postions)+1 != (FIELD_SIZE-2)**2:
 				food_position = tuple(randint(1, FIELD_SIZE-2) for _ in range(2))
 				if (food_position not in snake_postions) and \
@@ -119,19 +116,17 @@ def run_simulation():
 			  (new_x,new_y) in snake_postions:
 			score_list.append(0)
 			game_state[snake_postions[-1][1]][snake_postions[-1][0]] = TILE_TYPES["EMPTY"]
-			game_state[snake_postions[0][1]][snake_postions[0][0]] = TILE_TYPES["BODY"]
 			is_crashed = True
 		else:
 			score_list.append(0)
 			game_state[snake_postions[-1][1]][snake_postions[-1][0]] = TILE_TYPES["EMPTY"]
-			game_state[snake_postions[0][1]][snake_postions[0][0]] = TILE_TYPES["BODY"]
 			snake_postions.pop()
 
-		game_state[new_y][new_x] = TILE_TYPES["HEAD"]
+		game_state[new_y][new_x] = TILE_TYPES["BODY"]
 		snake_postions.insert(0, (new_x,new_y))
 
 		time_counter += 1
-		# history_track.append((time_counter, score_counter, deepcopy(game_state)))
+		# history_track.append((time_counter, score_counter, snake_postions[0], deepcopy(game_state)))
 		history_track.append((deepcopy(game_state),snake_postions[0],direction_id))
 
 		# if (time_counter >= 100) and (score_counter < 5):

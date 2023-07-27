@@ -42,7 +42,7 @@ def load_checkpoint(optimizer_id='CMA_ES', agent_id='Bare_minimum'):
 	return opt_params, opt_metrics
 
 
-AGENTS = {'Bare_minimum':99}
+AGENTS = {'Bare_minimum':103}
 agent_name = 'Bare_minimum'
 agent = Agent(agent_name)
 

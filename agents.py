@@ -8,26 +8,16 @@ from random import randint
 class Bare_minimum(torch.nn.Module):
 	def __init__(self):
 		super(Bare_minimum, self).__init__()
-		self.convolution = nn.Sequential(
-			nn.Conv2d(in_channels=5, out_channels=2, kernel_size=1, padding=0), #12
+		self.body = nn.Sequential(
+			nn.Linear(16, 5) # 85
 			nn.Sigmoid(),
 			nn.ReLU(),
-			nn.Conv2d(in_channels=2, out_channels=2, kernel_size=3, padding=0), #+19*2=50
-			nn.Sigmoid(),
-			nn.ReLU(),
-			nn.Conv2d(in_channels=2, out_channels=1, kernel_size=3, padding=0), #+19=69
-			nn.Sigmoid(),
-			nn.ReLU(),
-			nn.MaxPool2d(kernel_size=3, stride=3)
+			nn.Linear(5, 3) # 103
 		)
-		self.ff = nn.Linear(9, 3) #+30=99
 
 	def forward(self, x):
-		x = self.convolution(x)		
-		x = x.view(x.size(0), x.size(1) * x.size(2) * x.size(3))
-		x = self.ff(x)	
-		return x
-	
+		return self.body(x)
+
 
 class Agent(object):
 	def __init__(self, VISUAL_CORTEX_PATH='VAE/VAE_model.pt', \
@@ -62,12 +52,12 @@ class Agent(object):
 			new_state_dict[key] = item
 		self.body.load_state_dict(new_state_dict)
 
-	# def __call__(self, x):
-	# 	x = x.to(self.device)
-	# 	with torch.no_grad():
-	# 		x = self.visual_cortex(x)
-	# 		action_space = self.body.forward(x)
-	# 		return torch.argmax(action_space)-1
+	def __call__(self, x):
+		x = x.to(self.device)
+		with torch.no_grad():
+			x = self.visual_cortex(x) # [B,4,13,13]
+			action_space = self.body.forward(x)
+			return torch.argmax(action_space)-1
 
 
 class Rule_based_agent(object):

@@ -64,7 +64,7 @@ def train(vae, encoded_game_states_pool, epochs=20):
 	N = len(encoded_game_states_pool)
 	item_shape = encoded_game_states_pool.shape
 	item_shape = (1, item_shape[1], item_shape[2], item_shape[3])
-	loss_history = []
+	loss_history = 'epoch, epoch_loss\n'
 	
 	optimizer = torch.optim.Adam(vae.parameters())
 	for epoch in range(epochs):
@@ -78,13 +78,20 @@ def train(vae, encoded_game_states_pool, epochs=20):
 			loss = ((item - restored_item)**2).sum() + vae.encoder.KLD
 			epoch_loss += loss
 			loss.backward()
-			
-			optimizer.step()
-		
-		loss_history.append(epoch_loss)
-		# print(f'{epoch:3d}:{epoch_loss}')
 
-	return vae, loss_history
+			optimizer.step()
+		loss_history += f'{epoch:3d}:{epoch_loss}\n'
+
+	with open('loss_history.txt', 'w') as f:
+		f.write(loss_history)
+	return vae
+
+
+def compression_evaluation(model, item):
+	item = item.view(1,4,13,13)
+	with torch.no_grad():
+		restored_item = model(item)
+		return (item-restored_item).abs().sum()/item.sum()
 
 
 if __name__ == '__main__':
@@ -95,5 +102,5 @@ if __name__ == '__main__':
 	device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 	vae = VariationalAutoencoder().to(device)
 	encoded_game_states_pool = encoded_game_states_pool.to(device)
-	vae, loss_history = train(vae, encoded_game_states_pool, epochs=_)
-	# vae.encoder.state_dict()
+	vae = train(vae, encoded_game_states_pool, epochs=20)
+	torch.save(vae.encoder, 'VAE_model.pt')

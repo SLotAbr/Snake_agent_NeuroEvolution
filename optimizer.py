@@ -10,6 +10,7 @@ from sys import argv
 
 
 def objective_function(score_list, discount):
+	"returns a reward value"
 	return sum([score_list[t]*(discount**t) for t in range(len(score_list))])
 
 
@@ -70,8 +71,10 @@ for iteration in range(iteration, ITERATION_NUMBER):
 		agent.set_genome(population[i])
 		score_list, ind_scores = run_simulation((agent_name, i),('CMA_ES',iteration), agent)
 		iteration_scores.append(ind_scores)
-		fitness_list[i] = objective_function(score_list, DISCOUNT)
-		fitness_list[i] -= 0.01*np.mean(population[i]**2) #L2 norm
+		reward = objective_function(score_list, DISCOUNT)
+		reward -= 0.01*np.mean(population[i]**2) #L2 norm
+		# CMAEvolutionStrategy optimizes a loss function - not a reward function
+		fitness_list[i] = -reward
 
 	es.tell(population, fitness_list)
 	fitness_history.append(max(fitness_list))

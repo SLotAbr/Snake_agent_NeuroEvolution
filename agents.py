@@ -30,10 +30,12 @@ class Bare_minimum(torch.nn.Module):
 	
 
 class Agent(object):
-	def __init__(self, agent_name):
+	def __init__(self, VISUAL_CORTEX_PATH='VAE/VAE_model.pt', \
+						agent_name='Bare_minimum'):
 		AGENTS = {'Bare_minimum':Bare_minimum()}
 		self.body = AGENTS[agent_name]
 		self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+		self.visual_cortex = torch.load(VISUAL_CORTEX_PATH)
 		self.body = self.body.to(self.device)
 		self.state_dict_info = deepcopy(self.body.state_dict())
 		self.genome_length=0
@@ -60,11 +62,12 @@ class Agent(object):
 			new_state_dict[key] = item
 		self.body.load_state_dict(new_state_dict)
 
-	def __call__(self, x):
-		x = x.to(self.device)
-		with torch.no_grad():
-			action_space = self.body.forward(x)
-			return torch.argmax(action_space)-1
+	# def __call__(self, x):
+	# 	x = x.to(self.device)
+	# 	with torch.no_grad():
+	# 		x = self.visual_cortex(x)
+	# 		action_space = self.body.forward(x)
+	# 		return torch.argmax(action_space)-1
 
 
 class Rule_based_agent(object):

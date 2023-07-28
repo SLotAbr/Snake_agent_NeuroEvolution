@@ -9,9 +9,14 @@ from shutil import rmtree
 from sys import argv
 
 
-def objective_function(score_list, discount):
-	"returns a reward value"
-	return sum([score_list[t]*(discount**t) for t in range(len(score_list))])
+def objective_function(REWARD_TABLE, score_list, exploration_score, decay):
+	reward = sum(
+		[score_list[t]*REWARD_TABLE['scores_importance']*(REWARD_TABLE['discount']**t) \
+			for t in range(len(score_list))]
+	)
+	reward += exploration_score*REWARD_TABLE['exploration_importance']
+	reward -= decay*REWARD_TABLE['decay_intensity']
+	return reward
 
 
 def make_checkpoint(last_iter, opt_params, opt_metrics, population_params):
@@ -32,7 +37,7 @@ def make_checkpoint(last_iter, opt_params, opt_metrics, population_params):
 def load_checkpoint(optimizer_id='CMA_ES', agent_id='Bare_minimum'):
 	path = f'history_buffer/CMA_ES/{agent_id}/optimizer_info.pkl'
 	with open(path, 'rb') as f:
-		# es, _, DISCOUNT, ITERATION_NUMBER, iter_ = load(f)
+		# es, _, REWARD_TABLE, ITERATION_NUMBER, iter_ = load(f)
 		opt_params = load(f)
 
 	path = f'history_buffer/CMA_ES/{agent_id}/optimizer_metrics.pkl'
@@ -47,17 +52,22 @@ AGENTS = {'Bare_minimum':103}
 agent_name = 'Bare_minimum'
 agent = Agent(agent_name)
 
+
 if len(argv)==1:
 	rmtree(f'history_buffer/CMA_ES/{agent_name}/')
 	mkdir(f'history_buffer/CMA_ES/{agent_name}')
-	DISCOUNT = 0.95
+
+	REWARD_TABLE = {'scores_importance':5,
+					'exploration_importance':1,
+					'decay_intensity':0.01,
+					'discount':0.95}
 	es = cma.CMAEvolutionStrategy(AGENTS[agent_name] * [0], 0.5, {'popsize': 10})
 	fitness_history, scores_history = [], []
 	ITERATION_NUMBER, iteration = 10, 0
 elif argv[1]=='load_checkpoint':
 	opt_params, opt_metrics = \
 		load_checkpoint(optimizer_id='CMA_ES', agent_id=agent_name)
-	es, _, DISCOUNT, ITERATION_NUMBER, iteration = opt_params
+	es, _, REWARD_TABLE, ITERATION_NUMBER, iteration = opt_params
 	fitness_history, scores_history = opt_metrics
 
 for iteration in range(iteration, ITERATION_NUMBER):
@@ -69,10 +79,14 @@ for iteration in range(iteration, ITERATION_NUMBER):
 		# if iteration < 10:
 		# 	population[i] +=  np.random.normal(0,4,AGENTS[agent_name])
 		agent.set_genome(population[i])
-		score_list, ind_scores = run_simulation((agent_name, i),('CMA_ES',iteration), agent)
+		score_list, ind_scores, exploration_score = \
+			run_simulation((agent_name, i),('CMA_ES',iteration), agent)
 		iteration_scores.append(ind_scores)
-		reward = objective_function(score_list, DISCOUNT)
-		reward -= 0.01*np.mean(population[i]**2) #L2 norm
+
+		decay = np.mean(population[i]**2) #L2 norm
+		reward = objective_function(
+			REWARD_TABLE, score_list, exploration_score, decay
+		)
 		# CMAEvolutionStrategy optimizes a loss function - not a reward function
 		fitness_list[i] = -reward
 
@@ -82,7 +96,7 @@ for iteration in range(iteration, ITERATION_NUMBER):
 	print(f'max fitness score at iteration {iteration}: {fitness_history[-1]}')
 
 	top_score_individuals = list(np.argsort(iteration_scores)[::-1])
-	opt_params = (es, agent_name, DISCOUNT, ITERATION_NUMBER)
+	opt_params = (es, agent_name, REWARD_TABLE, ITERATION_NUMBER)
 	opt_metrics = (fitness_history, scores_history)
 	population_params = (population, fitness_list, top_score_individuals)
 	make_checkpoint(iteration, opt_params, opt_metrics, population_params)

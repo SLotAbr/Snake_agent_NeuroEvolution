@@ -50,6 +50,14 @@ def save_replay(history_track, opt_path, progress_info):
 # 		dump(history_track, f)
 
 
+def get_unique_game_state_number(history_track, field_size):
+	game_state_list = torch.cat(
+		[Tensor(game_state).view(1,field_size,field_size) \
+			for _, _, _, game_state in history_track]
+	)
+	return game_state_list.unique(dim=0).shape[0]
+
+
 def run_simulation(agent_info, opt_info, agent):
 	FIELD_SIZE = 9
 	is_crashed, time_counter, score_counter, score_list = False, 0, 0, [0]
@@ -134,4 +142,4 @@ def run_simulation(agent_info, opt_info, agent):
 		f'history_buffer/{opt_id}/{agent_id}/',
 		f'iteration_{iter_}/individual_{str(agent_info[1])}.pkl')
 	
-	return score_list, score_counter
+	return score_list, score_counter, get_unique_game_state_number(history_track)

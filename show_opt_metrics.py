@@ -13,10 +13,11 @@ if __name__ == '__main__':
 	opt_id, agent_id = ('CMA_ES', 'Bare_minimum') \
 							if len(argv)==1 else (argv[1], argv[2])
 	with open(get_path(opt_id, agent_id), 'rb') as f:
-		fitness, scores = load(f)
-	plt.plot(fitness)
+		loss, scores = load(f)
+	plt.plot(loss[1:])
 	# plt.plot(scores, label='max scores')
-	plt.ylabel('fitness value')
+	plt.title('loss values after the 2nd optimizer iteration')
+	plt.ylabel('loss value')
 	plt.xlabel('iteration')
 	# plt.legend()
 	plt.show()

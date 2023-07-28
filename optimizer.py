@@ -1,6 +1,7 @@
 import cma
 import numpy as np
 from agents import Agent
+from VAE.VAE_creation import Encoder # visual cortex architecture
 from os import mkdir
 from pickle import dump, load
 from tqdm import tqdm
@@ -50,7 +51,7 @@ def load_checkpoint(optimizer_id='CMA_ES', agent_id='Bare_minimum'):
 
 AGENTS = {'Bare_minimum':103}
 agent_name = 'Bare_minimum'
-agent = Agent(agent_name)
+agent = Agent(VISUAL_CORTEX_PATH='VAE/VAE_model.pt', agent_name='Bare_minimum')
 
 
 if len(argv)==1:
@@ -61,9 +62,10 @@ if len(argv)==1:
 					'exploration_importance':1,
 					'decay_intensity':0.01,
 					'discount':0.95}
-	es = cma.CMAEvolutionStrategy(AGENTS[agent_name] * [0], 0.5, {'popsize': 10})
+	# cma.CMAEvolutionStrategy(AGENTS[agent_name] * [0], 0.5, {'popsize': 10})
+	es = cma.CMAEvolutionStrategy(AGENTS[agent_name] * [0], 0.5)
 	fitness_history, scores_history = [], []
-	ITERATION_NUMBER, iteration = 10, 0
+	ITERATION_NUMBER, iteration = 200, 0
 elif argv[1]=='load_checkpoint':
 	opt_params, opt_metrics = \
 		load_checkpoint(optimizer_id='CMA_ES', agent_id=agent_name)
@@ -91,9 +93,9 @@ for iteration in range(iteration, ITERATION_NUMBER):
 		fitness_list[i] = -reward
 
 	es.tell(population, fitness_list)
-	fitness_history.append(max(fitness_list))
+	fitness_history.append(np.median(fitness_list))
 	scores_history.append(max(iteration_scores))
-	print(f'max fitness score at iteration {iteration}: {fitness_history[-1]}')
+	print(f'median loss value at iteration {iteration}: {fitness_history[-1]}')
 
 	top_score_individuals = list(np.argsort(iteration_scores)[::-1])
 	opt_params = (es, agent_name, REWARD_TABLE, ITERATION_NUMBER)

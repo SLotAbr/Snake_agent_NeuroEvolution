@@ -9,7 +9,7 @@ class Bare_minimum(torch.nn.Module):
 	def __init__(self):
 		super(Bare_minimum, self).__init__()
 		self.body = nn.Sequential(
-			nn.Linear(16, 5) # 85
+			nn.Linear(16, 5), # 85
 			nn.Sigmoid(),
 			nn.ReLU(),
 			nn.Linear(5, 3) # 103

@@ -3,7 +3,7 @@ import os
 from copy import deepcopy
 from pickle import dump
 from random import randint
-from torch import Tensor, rot90, zeros
+from torch import Tensor, cat, rot90, zeros
 # from sys import argv
 
 
@@ -51,7 +51,7 @@ def save_replay(history_track, opt_path, progress_info):
 
 
 def get_unique_game_state_number(history_track, field_size):
-	game_state_list = torch.cat(
+	game_state_list = cat(
 		[Tensor(game_state).view(1,field_size,field_size) \
 			for _, _, _, game_state in history_track]
 	)
@@ -132,6 +132,7 @@ def run_simulation(agent_info, opt_info, agent):
 		)
 
 		if (time_counter >= 100) and (score_counter < 5):
+			score_list[0] = -1000
 			break
 		if (len(action_list) >= 7) and (len(set(action_list[-7:]))==1):
 			score_list[0] = -1000
@@ -142,4 +143,5 @@ def run_simulation(agent_info, opt_info, agent):
 		f'history_buffer/{opt_id}/{agent_id}/',
 		f'iteration_{iter_}/individual_{str(agent_info[1])}.pkl')
 	
-	return score_list, score_counter, get_unique_game_state_number(history_track)
+	exploration_score = get_unique_game_state_number(history_track, FIELD_SIZE)
+	return score_list, score_counter, exploration_score

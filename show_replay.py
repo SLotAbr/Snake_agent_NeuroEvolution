@@ -1,7 +1,9 @@
-from tkinter import *
-from time import sleep
+import numpy as np
+from os import listdir
 from pickle import load
 from sys import argv
+from time import sleep
+from tkinter import *
 
 
 def path2individual_replay(iter_,n):
@@ -22,6 +24,21 @@ def parse_arguments(argument_list):
 		print('required format: -key key_value')
 		raise ValueError
 	return arguments
+
+
+def update_agent_info(iteration_number, min_values, agent_info):
+	with open(path2iteration_info(iteration_number), 'rb') as f:
+		_, fitness_list, _ = load(f)
+	sort_indexes = np.argsort(fitness_list)
+	for i in sort_indexes:
+		candidate = max(min_values)
+		if fitness_list[i] < candidate:
+			x = min_values.index(candidate)
+			min_values[x] = fitness_list[i]
+			agent_info[x] = (iteration_number, i)
+		else:
+			break
+	return min_values, agent_info
 
 
 def display_history_file(history_track):
@@ -58,6 +75,15 @@ def read_and_display_history_file(path):
 	display_history_file(history_track)
 
 
+def display_several_history_files(replays_info, delay=0.5):
+	"replays_info item: (iteration_number, individual_number)"
+	for iter_, ind_n in replays_info:
+		read_and_display_history_file(
+			path2individual_replay(iter_, ind_n)
+		)
+		sleep(delay)
+
+
 if __name__ == '__main__':
 	assert len(argv)!=0,\
 		'ERROR: arguments required'
@@ -74,20 +100,36 @@ if __name__ == '__main__':
 		elif mode=='top-5':
 			if (iter_:=arguments.get('-iter')):
 				path = path2iteration_info(iter_)
-				with open(iteration_info_path, 'rb') as f:
+				with open(path, 'rb') as f:
 					# population_genome, loss_values, top_score_individuals
 					_, _, scores = load(f)
-				print(f'top individuals for iter {iter_} are: {scores[:5]}')
-				for ind_n in scores[:5]:
-					read_and_display_history_file(
-						path2individual_replay(iter_, ind_n)
-					)
-					sleep(0.5)
+				print(f'top-5 individuals for iter {iter_} are: {scores[:5]}')
+				display_several_history_files([(iter_, e) for e in scores[:5]])
 			else:
 				raise ValueError('iteration number should be specified for "top-5" visualization mode')
 
 		elif mode=='top-10':
-			pass
+			agent_folder = listdir('history_buffer/CMA_ES/Bare_minimum')
+			if len(agent_folder)!=0:
+				min_values = [99999 for _ in range(10)]
+				agent_info =[(-1,-1) for _ in range(10)]
+
+				for folder_name in agent_folder[:-3]:
+					if 'iteration' in folder_name:
+						iteration_number = folder_name.split('_')[1]
+						min_values, agent_info = update_agent_info(
+								iteration_number, min_values, agent_info
+						)
+
+				print('top-10 individuals for the entire optimization are:')
+				order = np.argsort(min_values)
+				for i in order:
+					print('iteration {}, individual {} with loss value: {}'.\
+							format(agent_info[i][0], agent_info[i][1], min_values[i])
+					)
+				display_several_history_files(np.array(agent_info)[order])
+			else:
+				raise SystemError('iteration_info not found: start the optimization first')
 
 		else:
 			raise ValueError('possible visualization mode values: {}'.\

@@ -14,10 +14,23 @@ if __name__ == '__main__':
 							if len(argv)==1 else (argv[1], argv[2])
 	with open(get_path(opt_id, agent_id), 'rb') as f:
 		loss, scores = load(f)
-	plt.plot(loss[1:])
+	smooth_loss, exponential_window_size = [], 100
+	alpha = 1/exponential_window_size
+	for e in loss:
+		# if abs(e)<500: #outliers handling
+		if len(smooth_loss)==0:
+			smooth_loss.append(e)
+		else:
+			# exponential smoothing
+			smooth_loss.append( e*alpha+smooth_loss[-1]*(1-alpha) )
+
+	min_value = min(smooth_loss)
+	print('minimum value reached at iteration {}: {}'.\
+			format(smooth_loss.index(min_value), min_value))
+	plt.plot(smooth_loss)
 	# plt.plot(scores, label='max scores')
-	plt.title('loss values after the 2nd optimizer iteration')
-	plt.ylabel('loss value')
+	plt.title(f'smoothed loss values, window_size={exponential_window_size}')
+	plt.ylabel('smoothed loss value')
 	plt.xlabel('iteration')
 	# plt.legend()
 	plt.show()

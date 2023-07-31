@@ -8,24 +8,20 @@ def path2individual_replay(iter_,n):
 	return f'history_buffer/CMA_ES/Bare_minimum/iteration_{iter_}/individual_{n}.pkl'
 
 
-def load_history(argv):
-	mode = ''
-	if len(argv)>1:
-		if len(argv)==3:
-			mode, iter_ = argv[1], argv[2]
-			if mode == 'top-5':
-				iteration_info_path = f'history_buffer/CMA_ES/Bare_minimum/iteration_{iter_}/iteration_info.pkl'
-				with open(iteration_info_path, 'rb') as f:
-					_, _, scores = load(f)
-				return _, scores
-		elif mode == 'single_replay':
-			iter_, n = argv[2], argv[3]
-			path = path2individual_replay(iter_,n)
-	else:
-		path = 'history_buffer/tmp/replay.pkl'
-	with open(path, 'rb') as f:
-		history_track = load(f)
-	return history_track, []
+def path2iteration_info(iter_):
+	return f'history_buffer/CMA_ES/Bare_minimum/iteration_{iter_}/iteration_info.pkl'
+
+
+def parse_arguments(argument_list):
+	try:
+		arguments = dict(
+			(argument_list[i],argument_list[i+1]) for i in range(0, len(argument_list),2)
+		)
+	except:
+		print('possible keys: -m, -iter, -ind')
+		print('required format: -key key_value')
+		raise ValueError
+	return arguments
 
 
 def display_history_file(history_track):
@@ -56,14 +52,45 @@ def display_history_file(history_track):
 		sleep(0.1)
 
 
-history_track, scores = load_history(argv)
-if not scores:
+def read_and_display_history_file(path):
+	with open(path, 'rb') as f:
+		history_track = load(f)
 	display_history_file(history_track)
-else:
-	print(f'top individuals for iter {argv[2]} are: {scores[:5]}')
-	for ind_n in scores[:5]:
-		path = path2individual_replay(argv[2], ind_n)
-		with open(path, 'rb') as f:
-			history_track = load(f)
-		display_history_file(history_track)
-		sleep(0.5)
+
+
+if __name__ == '__main__':
+	assert len(argv)!=0,\
+		'ERROR: arguments required'
+	arguments = parse_arguments(argv[1:])
+
+	if (mode:=arguments.get('-m')):
+		if mode=='single-replay':
+			if (iter_:=arguments.get('-iter')) and (n:=arguments.get('-ind')):
+				path = path2individual_replay(iter_,n)
+			else:
+				path = 'history_buffer/tmp/replay.pkl'
+			read_and_display_history_file(path)
+
+		elif mode=='top-5':
+			if (iter_:=arguments.get('-iter')):
+				path = path2iteration_info(iter_)
+				with open(iteration_info_path, 'rb') as f:
+					# population_genome, loss_values, top_score_individuals
+					_, _, scores = load(f)
+				print(f'top individuals for iter {iter_} are: {scores[:5]}')
+				for ind_n in scores[:5]:
+					read_and_display_history_file(
+						path2individual_replay(iter_, ind_n)
+					)
+					sleep(0.5)
+			else:
+				raise ValueError('iteration number should be specified for "top-5" visualization mode')
+
+		elif mode=='top-10':
+			pass
+
+		else:
+			raise ValueError('possible visualization mode values: {}'.\
+								format('single-replay, top-5, top-10'))
+	else:
+		raise ValueError('visualization mode (-m) should be specified')

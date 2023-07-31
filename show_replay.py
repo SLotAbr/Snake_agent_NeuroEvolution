@@ -27,17 +27,22 @@ def parse_arguments(argument_list):
 
 
 def update_agent_info(iteration_number, min_values, agent_info):
-	with open(path2iteration_info(iteration_number), 'rb') as f:
-		_, fitness_list, _ = load(f)
-	sort_indexes = np.argsort(fitness_list)
-	for i in sort_indexes:
-		candidate = max(min_values)
-		if fitness_list[i] < candidate:
-			x = min_values.index(candidate)
-			min_values[x] = fitness_list[i]
-			agent_info[x] = (iteration_number, i)
-		else:
-			break
+	try:
+		with open(path2iteration_info(iteration_number), 'rb') as f:
+			_, fitness_list, _ = load(f)
+		sort_indexes = np.argsort(fitness_list)
+		for i in sort_indexes:
+			candidate = max(min_values)
+			if fitness_list[i] < candidate:
+				x = min_values.index(candidate)
+				min_values[x] = fitness_list[i]
+				agent_info[x] = (iteration_number, i)
+			else:
+				break
+	except:
+		print(f'ERROR during iteration_{iteration_number} folder reading')
+		print("iteration_info.pkl wasn't found")
+		print('This directory will be ignored')
 	return min_values, agent_info
 
 
@@ -114,7 +119,7 @@ if __name__ == '__main__':
 				min_values = [99999 for _ in range(10)]
 				agent_info =[(-1,-1) for _ in range(10)]
 
-				for folder_name in agent_folder[:-3]:
+				for folder_name in agent_folder:
 					if 'iteration' in folder_name:
 						iteration_number = folder_name.split('_')[1]
 						min_values, agent_info = update_agent_info(

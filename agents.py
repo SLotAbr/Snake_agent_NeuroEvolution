@@ -26,6 +26,7 @@ class Agent(object):
 		self.body = AGENTS[agent_name]
 		self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 		self.visual_cortex = torch.load(VISUAL_CORTEX_PATH)
+		self.visual_cortex = self.visual_cortex.to(self.device)
 		self.body = self.body.to(self.device)
 		self.state_dict_info = deepcopy(self.body.state_dict())
 		self.genome_length=0

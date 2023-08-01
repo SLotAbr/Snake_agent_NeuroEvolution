@@ -18,6 +18,10 @@ I am impressed by Google Research's work on [Weight Agnostic Neural Networks and
 * Create animations of agent behavior and relate them to their neural architectures;
 * Devise ways to present the work accomplished in an attractive manner.
 
-
+# Demonstration
+## top-10 Bare_minimum agents (8 neurons)
+| <img src="GIFs/CMA_ES-Bare_minimum-iteration_584-individual_6.png" title="iter_584, ind_6"> | <img src="GIFs/CMA_ES-Bare_minimum-iteration_148-individual_15.png" title="iter_148, ind_15"> | <img src="GIFs/CMA_ES-Bare_minimum-iteration_392-individual_9.png" title="iter_392, ind_9"> | <img src="GIFs/CMA_ES-Bare_minimum-iteration_36-individual_16.png" title="iter_36, ind_16"> | <img src="GIFs/CMA_ES-Bare_minimum-iteration_384-individual_3.png" title="iter_384, ind_3"> |
+|:--:|:--:|:--:|:--:|:--:|
+| <img src="GIFs/CMA_ES-Bare_minimum-iteration_404-individual_11.png" title="iter_404, ind_11"> | <img src="GIFs/CMA_ES-Bare_minimum-iteration_935-individual_6.png" title="iter_935, ind_6"> | <img src="GIFs/CMA_ES-Bare_minimum-iteration_967-individual_2.png" title="iter_967, ind_2"> | <img src="GIFs/CMA_ES-Bare_minimum-iteration_910-individual_12.png" title="iter_910, ind_12"> | <img src="GIFs/CMA_ES-Bare_minimum-iteration_943-individual_11.png" title="iter_943, ind_11"> |
 
 Special thanks for Adam Gaier and David Ha

@@ -48,7 +48,7 @@ def update_agent_info(iteration_number, min_values, agent_info):
 
 def display_history_file(history_track):
 	root = Tk()
-	canvas = Canvas(root, width=250, height=170, bg="gray")
+	canvas = Canvas(root, width=170, height=90, bg="gray")
 	canvas.pack()
 	canvas.focus_set()
 
@@ -60,8 +60,8 @@ def display_history_file(history_track):
 
 	for time_counter, score_counter, head_position, game_state in history_track:
 		canvas.delete(ALL)
-		canvas.create_text(210, 30, text=str(score_counter), font=('Courier',34), fill="green")
-		canvas.create_text(210, 70, text=str(time_counter), font=('Courier',34), fill="black")
+		canvas.create_text(130, 30, text=str(score_counter), font=('Courier',34), fill="green")
+		canvas.create_text(130, 70, text=str(time_counter), font=('Courier',34), fill="black")
 
 		for y in range(len(game_state)):
 			for x in range(len(game_state[1])):

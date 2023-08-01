@@ -1,5 +1,5 @@
 import numpy as np
-from os import listdir
+from os import listdir, remove
 from pickle import load
 from sys import argv
 from time import sleep
@@ -20,7 +20,7 @@ def parse_arguments(argument_list):
 			(argument_list[i],argument_list[i+1]) for i in range(0, len(argument_list),2)
 		)
 	except:
-		print('possible keys: -m, -iter, -ind')
+		print('possible keys: -m, -iter, -ind, -s')
 		print('required format: -key key_value')
 		raise ValueError
 	return arguments
@@ -46,7 +46,15 @@ def update_agent_info(iteration_number, min_values, agent_info):
 	return min_values, agent_info
 
 
-def display_history_file(history_track):
+def image_grab(coords, game_step):
+	# the first grab is too fast and catches a screen area under the widget
+	if game_step==0:
+		sleep(1)
+	img = ImageGrab.grab(coords)
+	img.save(f'history_buffer/tmp/game_state_{game_step}.png')
+
+
+def display_history_file(history_track, save_mode=False):
 	root = Tk()
 	canvas = Canvas(root, width=170, height=90, bg="gray")
 	canvas.pack()
@@ -58,7 +66,8 @@ def display_history_file(history_track):
 	# 				"BARRIER":3}
 	COLOR_TABLE = ["gray", "orange", "green", "black"]
 
-	for time_counter, score_counter, head_position, game_state in history_track:
+	for i in range(len(history_track)):
+		time_counter, score_counter, head_position, game_state = history_track[i]
 		canvas.delete(ALL)
 		canvas.create_text(130, 30, text=str(score_counter), font=('Courier',34), fill="green")
 		canvas.create_text(130, 70, text=str(time_counter), font=('Courier',34), fill="black")
@@ -71,13 +80,21 @@ def display_history_file(history_track):
 
 		root.update_idletasks()
 		root.update()
+		if save_mode:
+			x0 = canvas.winfo_rootx()
+			y0 = canvas.winfo_rooty()
+			x1 = x0 + canvas.winfo_width()
+			y1 = y0 + canvas.winfo_height()
+			image_grab((x0, y0, x1, y1), i)
 		sleep(0.1)
 
 
-def read_and_display_history_file(path):
+def read_and_display_history_file(path, save_mode=''):
 	with open(path, 'rb') as f:
 		history_track = load(f)
-	display_history_file(history_track)
+	display_history_file(
+		history_track, save_mode=True if save_mode=='GIF' else False
+	)
 
 
 def display_several_history_files(replays_info, delay=0.5):
@@ -87,6 +104,23 @@ def display_several_history_files(replays_info, delay=0.5):
 			path2individual_replay(iter_, ind_n)
 		)
 		sleep(delay)
+
+
+def create_gif_replay(iter_, n, frame_folder='history_buffer/tmp'):
+	frame_paths = glob(f"{frame_folder}/*.png")
+	frames = [Image.open(image) for image in sorted(
+		frame_paths,
+		key=lambda s: int(findall(r'\d+', s)[0])
+	)]
+	# a pause for the beginning and the end of an animation
+	frames = [frames[0] for _ in range(5)] + frames
+	frames.extend([frames[-1] for _ in range(5)])
+	frame_one = frames[0]
+	frame_one.save(
+		f"GIFs/CMA_ES-Bare_minimum-iteration_{iter_}-individual_{n}.gif",
+		format="GIF", append_images=frames, save_all=True, duration=100, loop=0
+	)
+	[remove(e) for e in frame_paths]
 
 
 if __name__ == '__main__':
@@ -100,7 +134,15 @@ if __name__ == '__main__':
 				path = path2individual_replay(iter_,n)
 			else:
 				path = 'history_buffer/tmp/replay.pkl'
-			read_and_display_history_file(path)
+
+			if (save_mode:=arguments.get('-s')) and iter_ and n:
+				from glob import glob
+				from re import findall
+				from PIL import Image, ImageGrab
+				read_and_display_history_file(path, save_mode=save_mode)
+				create_gif_replay(iter_,n)
+			else:
+				read_and_display_history_file(path)
 
 		elif mode=='top-5':
 			if (iter_:=arguments.get('-iter')):

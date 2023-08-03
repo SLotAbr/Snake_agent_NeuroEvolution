@@ -43,10 +43,23 @@ def load_checkpoint(optimizer_id='CMA_ES', agent_id='Bare_minimum'):
 
 	path = f'history_buffer/CMA_ES/{agent_id}/optimizer_metrics.pkl'
 	with open(path, 'rb') as f:
-		# fitness_history, scores_history = load(f)
+		# loss_history, scores_history = load(f)
 		opt_metrics = load(f)
 
 	return opt_params, opt_metrics
+
+
+def early_stopping_check(min_iteration_loss, 
+						 min_loss, 
+						 iteration, 
+						 EARLY_STOPPING_THRESHOLD, 
+						 is_locked):
+	if min_iteration_loss < min_loss[1]:
+		min_loss[0] = iteration
+		min_loss[1] = min_iteration_loss
+	if iteration - min_loss[0] > EARLY_STOPPING_THRESHOLD:
+		is_locked = True
+	return min_loss, is_locked
 
 
 AGENTS = {'Bare_minimum':103}
@@ -64,17 +77,24 @@ if len(argv)==1:
 					'discount':0.95}
 	# cma.CMAEvolutionStrategy(AGENTS[agent_name] * [0], 0.5, {'popsize': 10})
 	es = cma.CMAEvolutionStrategy(AGENTS[agent_name] * [0], 0.5)
-	fitness_history, scores_history = [], []
+	loss_history, scores_history = [], []
+	EARLY_STOPPING_THRESHOLD, is_locked, min_loss_value = 800, False, (-1, 99999)
 	ITERATION_NUMBER, iteration = 200, 0
 elif argv[1]=='load_checkpoint':
 	opt_params, opt_metrics = \
 		load_checkpoint(optimizer_id='CMA_ES', agent_id=agent_name)
-	es, _, REWARD_TABLE, ITERATION_NUMBER, iteration = opt_params
-	fitness_history, scores_history = opt_metrics
+	es, _, REWARD_TABLE, ITERATION_NUMBER, EARLY_STOPPING_THRESHOLD, \
+		is_locked, min_loss_value, iteration = opt_params
+	loss_history, scores_history = opt_metrics
 
 for iteration in range(iteration, ITERATION_NUMBER):
+	if is_locked:
+		print('the optimization interrupted due to early stopping condition')
+		print('DEBUG info; (min_loss_iteration, locked_iteration, THRESHOLD):')
+		print(f'{min_loss_value[0]}, {iteration}, {EARLY_STOPPING_THRESHOLD}')
+		break
 	population = es.ask()
-	fitness_list = np.zeros(es.popsize)
+	loss_list = np.zeros(es.popsize)
 	iteration_scores = []
 
 	for i in tqdm(range(es.popsize)):
@@ -90,15 +110,21 @@ for iteration in range(iteration, ITERATION_NUMBER):
 			REWARD_TABLE, score_list, exploration_score, decay
 		)
 		# CMAEvolutionStrategy optimizes a loss function - not a reward function
-		fitness_list[i] = -reward
+		loss_list[i] = -reward
 
-	es.tell(population, fitness_list)
-	fitness_history.append(np.median(fitness_list))
+	es.tell(population, loss_list)
+	loss_history.append(np.median(loss_list))
 	scores_history.append(max(iteration_scores))
-	print(f'median loss value at iteration {iteration}: {fitness_history[-1]}')
+	print(f'median loss value at iteration {iteration}: {loss_history[-1]}')
+
+	min_loss_value, is_locked = early_stopping_check(
+		min(loss_list), min_loss_value, iteration, 
+		EARLY_STOPPING_THRESHOLD, is_locked
+	)
 
 	top_score_individuals = list(np.argsort(iteration_scores)[::-1])
-	opt_params = (es, agent_name, REWARD_TABLE, ITERATION_NUMBER)
-	opt_metrics = (fitness_history, scores_history)
-	population_params = (population, fitness_list, top_score_individuals)
+	opt_params = (es, agent_name, REWARD_TABLE, ITERATION_NUMBER, 
+		EARLY_STOPPING_THRESHOLD, is_locked, min_loss_value)
+	opt_metrics = (loss_history, scores_history)
+	population_params = (population, loss_list, top_score_individuals)
 	make_checkpoint(iteration, opt_params, opt_metrics, population_params)

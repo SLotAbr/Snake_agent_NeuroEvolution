@@ -135,10 +135,10 @@ def run_simulation(agent_info, opt_info, agent):
 		)
 
 		if (time_counter - last_food_iter)>CONSUMPTION_RATE:
-			score_list[0] = -1000
+			score_list[0] = -100
 			break
 		if (len(action_list) >= 7) and (len(set(action_list[-7:]))==1):
-			score_list[0] = -1000
+			score_list[0] = -100
 			break
 
 	opt_id, agent_id, iter_ = opt_info[0], agent_info[0], opt_info[1]

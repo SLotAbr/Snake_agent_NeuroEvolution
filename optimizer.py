@@ -74,8 +74,8 @@ if len(argv)==1:
 	rmtree(f'history_buffer/CMA_ES/{agent_name}/')
 	mkdir(f'history_buffer/CMA_ES/{agent_name}')
 
-	REWARD_TABLE = {'scores_importance':5,
-					'exploration_importance':1,
+	REWARD_TABLE = {'scores_importance':20,
+					'exploration_importance':2,
 					'decay_intensity':0.01,
 					'discount':0.95}
 	# cma.CMAEvolutionStrategy(AGENTS[agent_name] * [0], 0.5, {'popsize': 10})

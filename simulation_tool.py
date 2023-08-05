@@ -63,6 +63,8 @@ def run_simulation(agent_info, opt_info, agent):
 	is_crashed, time_counter, score_counter, score_list = False, 0, 0, [0]
 	history_track, snake_postions = [], [(3,2),(2,2)] 
 	food_position = tuple(randint(1, FIELD_SIZE-2) for _ in range(2))
+	last_food_iter = 0 # the last food consumed iteration
+	CONSUMPTION_RATE = (FIELD_SIZE-2)**2
 	# "UP":0, "RIGHT":1, "DOWN":2, "LEFT":3
 	direction_id = 1
 	DIRECTION = [(0,-1), (1,0), (0,1), (-1,0)]
@@ -107,6 +109,7 @@ def run_simulation(agent_info, opt_info, agent):
 		if coord_comparsion((new_x,new_y), food_position):
 			score_counter+=1
 			score_list.append(1)
+			last_food_iter = time_counter+1
 			while len(snake_postions)+1 != (FIELD_SIZE-2)**2:
 				food_position = tuple(randint(1, FIELD_SIZE-2) for _ in range(2))
 				if (food_position not in snake_postions) and \
@@ -131,7 +134,7 @@ def run_simulation(agent_info, opt_info, agent):
 			(time_counter, score_counter, snake_postions[0], deepcopy(game_state))
 		)
 
-		if (time_counter >= 100) and (score_counter < 5):
+		if (time_counter - last_food_iter)>CONSUMPTION_RATE:
 			score_list[0] = -1000
 			break
 		if (len(action_list) >= 7) and (len(set(action_list[-7:]))==1):

@@ -62,7 +62,10 @@ def early_stopping_check(min_iteration_loss,
 	return min_loss, is_locked
 
 
-AGENTS = {'Bare_minimum':103}
+AGENTS = {'Bare_minimum':103,
+		  '16_neurons'  :188,
+		  '32_neurons'  :401,
+		  '64_neurons'  :1112}
 agent_name = 'Bare_minimum'
 agent = Agent(VISUAL_CORTEX_PATH='VAE/VAE_model.pt', agent_name='Bare_minimum')
 

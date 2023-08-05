@@ -19,10 +19,73 @@ class Bare_minimum(torch.nn.Module):
 		return self.body(x)
 
 
+class Agent_16(torch.nn.Module):
+	def __init__(self):
+		super(Bare_minimum, self).__init__()
+		self.body = nn.Sequential(
+			nn.Linear(16, 7),
+			nn.Sigmoid(),
+			nn.ReLU(),
+			nn.Linear(7, 6),
+			nn.Sigmoid(),
+			nn.ReLU(),
+			nn.Linear(6, 3),
+		)
+
+	def forward(self, x):
+		return self.body(x)
+
+
+class Agent_32(torch.nn.Module):
+	def __init__(self):
+		super(Bare_minimum, self).__init__()
+		self.body = nn.Sequential(
+			nn.Linear(16, 9),
+			nn.Sigmoid(),
+			nn.ReLU(),
+			nn.Linear(9, 11),
+			nn.Sigmoid(),
+			nn.ReLU(),
+			nn.Linear(11, 9),
+			nn.Sigmoid(),
+			nn.ReLU(),
+			nn.Linear(9, 3)		
+		)
+
+	def forward(self, x):
+		return self.body(x)
+
+
+class Agent_64(torch.nn.Module):
+	def __init__(self):
+		super(Bare_minimum, self).__init__()
+		self.body = nn.Sequential(
+			nn.Linear(16, 13),
+			nn.Sigmoid(),
+			nn.ReLU(),
+			nn.Linear(13, 21),
+			nn.Sigmoid(),
+			nn.ReLU(),
+			nn.Linear(21, 18),
+			nn.Sigmoid(),
+			nn.ReLU(),
+			nn.Linear(18, 9),
+			nn.Sigmoid(),
+			nn.ReLU(),
+			nn.Linear(9, 3)
+		)
+
+	def forward(self, x):
+		return self.body(x)
+
+
 class Agent(object):
 	def __init__(self, VISUAL_CORTEX_PATH='VAE/VAE_model.pt', \
 						agent_name='Bare_minimum'):
-		AGENTS = {'Bare_minimum':Bare_minimum()}
+		AGENTS = {'Bare_minimum':Bare_minimum(),
+				  '16_neurons'  :Agent_16(),
+				  '32_neurons'  :Agent_32(),
+				  '64_neurons'  :Agent_64()}
 		self.body = AGENTS[agent_name]
 		self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 		self.visual_cortex = torch.load(VISUAL_CORTEX_PATH)

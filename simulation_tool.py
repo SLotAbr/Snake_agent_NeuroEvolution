@@ -37,6 +37,16 @@ def encode_game_state(game_state,
 	return encoding
 
 
+def generate_food_tile(snake_postions, FIELD_SIZE):
+	if len(snake_postions) == (FIELD_SIZE-2)**2:
+		return (0,0)
+	else:
+		while True:
+			food_position = tuple(randint(1, FIELD_SIZE-2) for _ in range(2))
+			if food_position not in snake_postions:
+				return food_position	
+
+
 def save_replay(history_track, opt_path, progress_info):
 	iter_folder_path = opt_path+progress_info.split('/')[0]
 	if not os.path.exists(iter_folder_path): os.mkdir(iter_folder_path)
@@ -62,7 +72,7 @@ def run_simulation(agent_info, opt_info, agent):
 	FIELD_SIZE = 9
 	is_crashed, time_counter, score_counter, score_list = False, 0, 0, [0]
 	history_track, snake_postions = [], [(3,2),(2,2)] 
-	food_position = tuple(randint(1, FIELD_SIZE-2) for _ in range(2))
+	food_position = generate_food_tile(snake_postions, FIELD_SIZE)
 	last_food_iter = 0 # the last food consumed iteration
 	CONSUMPTION_RATE = (FIELD_SIZE-2)**2
 	# "UP":0, "RIGHT":1, "DOWN":2, "LEFT":3
@@ -110,12 +120,11 @@ def run_simulation(agent_info, opt_info, agent):
 			score_counter+=1
 			score_list.append(1)
 			last_food_iter = time_counter+1
-			while len(snake_postions)+1 != (FIELD_SIZE-2)**2:
-				food_position = tuple(randint(1, FIELD_SIZE-2) for _ in range(2))
-				if (food_position not in snake_postions) and \
-						not coord_comparsion((new_x,new_y), food_position):
-					game_state[food_position[1]][food_position[0]] = TILE_TYPES["FOOD"]
-					break
+			food_position = generate_food_tile(
+				[(new_x,new_y)]+snake_postions, FIELD_SIZE
+			)
+			if food_position[0]:
+				game_state[food_position[1]][food_position[0]] = TILE_TYPES["FOOD"]
 		elif game_state[new_y][new_x]==TILE_TYPES["BARRIER"] or\
 			  (new_x,new_y) in snake_postions:
 			score_list.append(0)
@@ -135,10 +144,10 @@ def run_simulation(agent_info, opt_info, agent):
 		)
 
 		if (time_counter - last_food_iter)>CONSUMPTION_RATE:
-			score_list[0] = -100
+			score_list[0] = -200
 			break
 		if (len(action_list) >= 7) and (len(set(action_list[-7:]))==1):
-			score_list[0] = -100
+			score_list[0] = -200
 			break
 
 	opt_id, agent_id, iter_ = opt_info[0], agent_info[0], opt_info[1]

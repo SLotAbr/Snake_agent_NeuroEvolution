@@ -6,12 +6,12 @@ from time import sleep
 from tkinter import *
 
 
-def path2individual_replay(iter_,n):
-	return f'history_buffer/CMA_ES/Bare_minimum/iteration_{iter_}/individual_{n}.pkl'
+def path2individual_replay(iter_, n, agent_id='Bare_minimum'):
+	return f'history_buffer/CMA_ES/{agent_id}/iteration_{iter_}/individual_{n}.pkl'
 
 
-def path2iteration_info(iter_):
-	return f'history_buffer/CMA_ES/Bare_minimum/iteration_{iter_}/iteration_info.pkl'
+def path2iteration_info(iter_, agent_id='Bare_minimum'):
+	return f'history_buffer/CMA_ES/{agent_id}/iteration_{iter_}/iteration_info.pkl'
 
 
 def parse_arguments(argument_list):
@@ -26,9 +26,9 @@ def parse_arguments(argument_list):
 	return arguments
 
 
-def update_agent_info(iteration_number, min_values, agent_info):
+def update_agent_info(iteration_number, min_values, agent_info, agent_id):
 	try:
-		with open(path2iteration_info(iteration_number), 'rb') as f:
+		with open(path2iteration_info(iteration_number, agent_id), 'rb') as f:
 			_, fitness_list, _ = load(f)
 		sort_indexes = np.argsort(fitness_list)
 		for i in sort_indexes:
@@ -86,7 +86,7 @@ def display_history_file(history_track, save_mode=False):
 			x1 = x0 + canvas.winfo_width()
 			y1 = y0 + canvas.winfo_height()
 			image_grab((x0, y0, x1, y1), i)
-		sleep(0.1)
+		sleep(0.01)
 
 
 def read_and_display_history_file(path, save_mode=''):
@@ -99,14 +99,17 @@ def read_and_display_history_file(path, save_mode=''):
 
 def display_several_history_files(replays_info, delay=0.5):
 	"replays_info item: (iteration_number, individual_number)"
-	for iter_, ind_n in replays_info:
+	for iter_, ind_n, agent_id in replays_info:
 		read_and_display_history_file(
-			path2individual_replay(iter_, ind_n)
+			path2individual_replay(iter_, ind_n, agent_id)
 		)
 		sleep(delay)
 
 
-def create_gif_replay(iter_, n, frame_folder='history_buffer/tmp'):
+def create_gif_replay(iter_, 
+					  n, 
+					  agent_id='Bare_minimum', 
+					  frame_folder='history_buffer/tmp'):
 	frame_paths = glob(f"{frame_folder}/*.png")
 	frames = [Image.open(image) for image in sorted(
 		frame_paths,
@@ -117,7 +120,7 @@ def create_gif_replay(iter_, n, frame_folder='history_buffer/tmp'):
 	frames.extend([frames[-1] for _ in range(5)])
 	frame_one = frames[0]
 	frame_one.save(
-		f"GIFs/CMA_ES-Bare_minimum-iteration_{iter_}-individual_{n}.gif",
+		f"GIFs/CMA_ES-{agent_id}-iteration_{iter_}-individual_{n}.gif",
 		format="GIF", append_images=frames, save_all=True, duration=100, loop=0
 	)
 	[remove(e) for e in frame_paths]
@@ -127,11 +130,12 @@ if __name__ == '__main__':
 	assert len(argv)!=0,\
 		'ERROR: arguments required'
 	arguments = parse_arguments(argv[1:])
+	agent_id = agent if (agent:=arguments.get('-agent')) else 'Bare_minimum'
 
 	if (mode:=arguments.get('-m')):
 		if mode=='single-replay':
 			if (iter_:=arguments.get('-iter')) and (n:=arguments.get('-ind')):
-				path = path2individual_replay(iter_,n)
+				path = path2individual_replay(iter_, n, agent_id)
 			else:
 				path = 'history_buffer/tmp/replay.pkl'
 
@@ -140,23 +144,23 @@ if __name__ == '__main__':
 				from re import findall
 				from PIL import Image, ImageGrab
 				read_and_display_history_file(path, save_mode=save_mode)
-				create_gif_replay(iter_,n)
+				create_gif_replay(iter_,n, agent_id)
 			else:
 				read_and_display_history_file(path)
 
 		elif mode=='top-5':
 			if (iter_:=arguments.get('-iter')):
-				path = path2iteration_info(iter_)
+				path = path2iteration_info(iter_, agent_id)
 				with open(path, 'rb') as f:
 					# population_genome, loss_values, top_score_individuals
 					_, _, scores = load(f)
-				print(f'top-5 individuals for iter {iter_} are: {scores[:5]}')
-				display_several_history_files([(iter_, e) for e in scores[:5]])
+				print(f'top-5 {agent_id} individuals for iter {iter_} are: {scores[:5]}')
+				display_several_history_files([(iter_, e, agent_id) for e in scores[:5]])
 			else:
 				raise ValueError('iteration number should be specified for "top-5" visualization mode')
 
 		elif mode=='top-10':
-			agent_folder = listdir('history_buffer/CMA_ES/Bare_minimum')
+			agent_folder = listdir(f'history_buffer/CMA_ES/{agent_id}')
 			if len(agent_folder)!=0:
 				min_values = [99999 for _ in range(10)]
 				agent_info =[(-1,-1) for _ in range(10)]
@@ -165,16 +169,18 @@ if __name__ == '__main__':
 					if 'iteration' in folder_name:
 						iteration_number = folder_name.split('_')[1]
 						min_values, agent_info = update_agent_info(
-								iteration_number, min_values, agent_info
+								iteration_number, min_values, agent_info, agent_id
 						)
 
-				print('top-10 individuals for the entire optimization are:')
+				print(f'top-10 {agent_id} individuals for the entire optimization are:')
 				order = np.argsort(min_values)
 				for i in order:
 					print('iteration {}, individual {} with loss value: {}'.\
 							format(agent_info[i][0], agent_info[i][1], min_values[i])
 					)
-				display_several_history_files(np.array(agent_info)[order])
+				display_several_history_files(
+					[(e_0, e_1, agent_id) for e_0, e_1 in np.array(agent_info)[order]]
+				)
 			else:
 				raise SystemError('iteration_info not found: start the optimization first')
 

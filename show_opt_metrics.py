@@ -39,6 +39,7 @@ if __name__ == '__main__':
 	opt_id = opt if (opt:=arguments.get('-opt')) else 'CMA_ES'
 	agent_id = agent if (agent:=arguments.get('-agent')) else 'Bare_minimum'
 	with open(get_path(opt_id, agent_id), 'rb') as f:
+		# it's median loss values for iterations
 		loss, scores = load(f)
 
 	if not arguments.get('-s'):

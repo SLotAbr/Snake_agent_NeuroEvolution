@@ -2,7 +2,7 @@ import cma
 import numpy as np
 from agents import Agent
 from VAE.VAE_creation import Encoder # visual cortex architecture
-from os import mkdir
+from os import mkdir, path
 from pickle import dump, load
 from tqdm import tqdm
 from simulation_tool import run_simulation
@@ -49,17 +49,18 @@ def load_checkpoint(optimizer_id='CMA_ES', agent_id='Bare_minimum'):
 	return opt_params, opt_metrics
 
 
-def early_stopping_check(min_iteration_loss, 
-						 min_loss, 
-						 iteration, 
-						 EARLY_STOPPING_THRESHOLD, 
-						 is_locked):
-	if min_iteration_loss < min_loss[1]:
-		min_loss[0] = iteration
-		min_loss[1] = min_iteration_loss
-	if iteration - min_loss[0] > EARLY_STOPPING_THRESHOLD:
-		is_locked = True
-	return min_loss, is_locked
+def write_the_best_iters_info(iter_number, 
+							  iter_info,
+							  min_loss_values, 
+							  opt_it='CMA_ES', 
+							  agent_id='Bare_minimum'):
+	order = np.argsort(min_loss_values)
+	sorted_iters = ' '.join([str(e) for e in np.array(iter_info)[order]])
+	text = f'iteration_{iter_number} : {sorted_iters}\n'
+	path = f'history_buffer/{opt_it}/{agent_id}/the_best_iters.txt'
+	mode = 'a' if path.exists(path) else 'w'
+	with open(path, mode) as f:
+		f.write(text)
 
 
 AGENTS = {'Bare_minimum':103,
@@ -81,20 +82,24 @@ if len(argv)==1:
 	# cma.CMAEvolutionStrategy(AGENTS[agent_name] * [0], 0.5, {'popsize': 10})
 	es = cma.CMAEvolutionStrategy(AGENTS[agent_name] * [0], 0.5)
 	loss_history, scores_history = [], []
-	EARLY_STOPPING_THRESHOLD, is_locked, min_loss_value = 800, False, (-1, 99999)
+	EARLY_STOPPING_THRESHOLD, is_locked = 800, False
+	min_loss_values = [99999 for _ in range(10)]
+	min_loss_iters =  [-1 for _ in range(10)]
 	ITERATION_NUMBER, iteration = 200, 0
 elif argv[1]=='load_checkpoint':
 	opt_params, opt_metrics = \
 		load_checkpoint(optimizer_id='CMA_ES', agent_id=agent_name)
 	es, _, REWARD_TABLE, ITERATION_NUMBER, EARLY_STOPPING_THRESHOLD, \
-		is_locked, min_loss_value, iteration = opt_params
+		is_locked, min_loss_info, iteration = opt_params
+	min_loss_iters, min_loss_values = min_loss_info
 	loss_history, scores_history = opt_metrics
 
 for iteration in range(iteration, ITERATION_NUMBER):
 	if is_locked:
 		print('the optimization interrupted due to early stopping condition')
 		print('DEBUG info; (min_loss_iteration, locked_iteration, THRESHOLD):')
-		print(f'{min_loss_value[0]}, {iteration}, {EARLY_STOPPING_THRESHOLD}')
+		iter_ = min_loss_iters[min_loss_values.index(min(min_loss_values))]
+		print(f'{iter_}, {iteration}, {EARLY_STOPPING_THRESHOLD}')
 		break
 	population = es.ask()
 	loss_list = np.zeros(es.popsize)
@@ -120,14 +125,29 @@ for iteration in range(iteration, ITERATION_NUMBER):
 	scores_history.append(max(iteration_scores))
 	print(f'median loss value at iteration {iteration}: {loss_history[-1]}')
 
-	min_loss_value, is_locked = early_stopping_check(
-		min(loss_list), min_loss_value, iteration, 
-		EARLY_STOPPING_THRESHOLD, is_locked
-	)
+	sort_indexes = np.argsort(loss_list)
+	for i in sort_indexes:
+		candidate = max(min_loss_values)
+		if loss_list[i] < candidate:
+			x = min_loss_values.index(candidate)
+			min_loss_iters[x] = iteration_number
+			min_loss_values[x] = loss_list[i]
+		else:
+			break
+	
+	if iteration%1000==0:
+		write_the_best_iters_info(
+			iteration, min_loss_iters, min_loss_values, 'CMA_ES', agent_name
+		)
+
+	if iteration - min_loss_iters[min_loss_values.index(min(min_loss_values))]\
+		  > EARLY_STOPPING_THRESHOLD:
+		is_locked = True
 
 	top_score_individuals = list(np.argsort(iteration_scores)[::-1])
+	min_loss_info = (min_loss_iters, min_loss_values)
 	opt_params = (es, agent_name, REWARD_TABLE, ITERATION_NUMBER, 
-		EARLY_STOPPING_THRESHOLD, is_locked, min_loss_value)
+		EARLY_STOPPING_THRESHOLD, is_locked, min_loss_info)
 	opt_metrics = (loss_history, scores_history)
 	population_params = (population, loss_list, top_score_individuals)
 	make_checkpoint(iteration, opt_params, opt_metrics, population_params)

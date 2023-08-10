@@ -1,8 +1,9 @@
 import cma
 import numpy as np
+import os
 from agents import Agent
 from VAE.VAE_creation import Encoder # visual cortex architecture
-from os import mkdir, path
+from os import mkdir
 from pickle import dump, load
 from tqdm import tqdm
 from simulation_tool import run_simulation
@@ -58,7 +59,7 @@ def write_the_best_iters_info(iter_number,
 	sorted_iters = ' '.join([str(e) for e in np.array(iter_info)[order]])
 	text = f'iteration_{iter_number} : {sorted_iters}\n'
 	path = f'history_buffer/{opt_it}/{agent_id}/the_best_iters.txt'
-	mode = 'a' if path.exists(path) else 'w'
+	mode = 'a' if os.path.exists(path) else 'w'
 	with open(path, mode) as f:
 		f.write(text)
 
@@ -66,9 +67,10 @@ def write_the_best_iters_info(iter_number,
 AGENTS = {'Bare_minimum':103,
 		  '16_neurons'  :188,
 		  '32_neurons'  :401,
-		  '64_neurons'  :1112}
+		  '64_neurons'  :1112,
+		  '128_neurons' :2527}
 agent_name = 'Bare_minimum'
-agent = Agent(VISUAL_CORTEX_PATH='VAE/VAE_model.pt', agent_name='Bare_minimum')
+agent = Agent(VISUAL_CORTEX_PATH='VAE/VAE_model.pt', agent_name=agent_name)
 
 
 if len(argv)==1:
@@ -130,7 +132,7 @@ for iteration in range(iteration, ITERATION_NUMBER):
 		candidate = max(min_loss_values)
 		if loss_list[i] < candidate:
 			x = min_loss_values.index(candidate)
-			min_loss_iters[x] = iteration_number
+			min_loss_iters[x] = iteration
 			min_loss_values[x] = loss_list[i]
 		else:
 			break

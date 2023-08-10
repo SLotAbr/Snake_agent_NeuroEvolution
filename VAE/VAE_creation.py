@@ -23,9 +23,12 @@ class Encoder(nn.Module):
 		x = x.view(x.size(0), x.size(1) * x.size(2) * x.size(3))
 		mu, logvar = self.mu(x), self.logvar(x)
 		sigma = logvar.exp()
+		noise = torch.randn(self.latent_space_shape).to(
+			torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+		)
 		# Kullback-Leibler Divergence
 		self.KLD = -0.5 * (1 + logvar - mu.square() - sigma).sum()
-		return mu + sigma * torch.randn(self.latent_space_shape)
+		return mu + sigma * noise
 
 
 class Decoder(nn.Module):

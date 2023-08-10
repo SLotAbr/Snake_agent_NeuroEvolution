@@ -21,7 +21,7 @@ class Bare_minimum(torch.nn.Module):
 
 class Agent_16(torch.nn.Module):
 	def __init__(self):
-		super(Bare_minimum, self).__init__()
+		super(Agent_16, self).__init__()
 		self.body = nn.Sequential(
 			nn.Linear(16, 7),
 			nn.Sigmoid(),
@@ -38,7 +38,7 @@ class Agent_16(torch.nn.Module):
 
 class Agent_32(torch.nn.Module):
 	def __init__(self):
-		super(Bare_minimum, self).__init__()
+		super(Agent_32, self).__init__()
 		self.body = nn.Sequential(
 			nn.Linear(16, 9),
 			nn.Sigmoid(),
@@ -49,7 +49,7 @@ class Agent_32(torch.nn.Module):
 			nn.Linear(11, 9),
 			nn.Sigmoid(),
 			nn.ReLU(),
-			nn.Linear(9, 3)		
+			nn.Linear(9, 3)
 		)
 
 	def forward(self, x):
@@ -58,7 +58,7 @@ class Agent_32(torch.nn.Module):
 
 class Agent_64(torch.nn.Module):
 	def __init__(self):
-		super(Bare_minimum, self).__init__()
+		super(Agent_64, self).__init__()
 		self.body = nn.Sequential(
 			nn.Linear(16, 13),
 			nn.Sigmoid(),
@@ -79,13 +79,46 @@ class Agent_64(torch.nn.Module):
 		return self.body(x)
 
 
+class Agent_128(torch.nn.Module):
+	def __init__(self):
+		super(Agent_128, self).__init__()
+		self.body = nn.Sequential(
+			nn.Linear(16, 10),
+			nn.Sigmoid(),
+			nn.ReLU(),
+			nn.Linear(10, 16),
+			nn.Sigmoid(),
+			nn.ReLU(),
+			nn.Linear(16, 27),
+			nn.Sigmoid(),
+			nn.ReLU(),
+			nn.Linear(27, 18),
+			nn.Sigmoid(),
+			nn.ReLU(),
+			nn.Linear(18, 27),
+			nn.Sigmoid(),
+			nn.ReLU(),
+			nn.Linear(27, 18),
+			nn.Sigmoid(),
+			nn.ReLU(),
+			nn.Linear(18, 9),
+			nn.Sigmoid(),
+			nn.ReLU(),
+			nn.Linear(9, 3)
+		)
+
+	def forward(self, x):
+		return self.body(x)
+
+
 class Agent(object):
 	def __init__(self, VISUAL_CORTEX_PATH='VAE/VAE_model.pt', \
 						agent_name='Bare_minimum'):
 		AGENTS = {'Bare_minimum':Bare_minimum(),
 				  '16_neurons'  :Agent_16(),
 				  '32_neurons'  :Agent_32(),
-				  '64_neurons'  :Agent_64()}
+				  '64_neurons'  :Agent_64(),
+				  '128_neurons' :Agent_128()}
 		self.body = AGENTS[agent_name]
 		self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 		self.visual_cortex = torch.load(VISUAL_CORTEX_PATH)

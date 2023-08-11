@@ -22,7 +22,7 @@ I am impressed by Google Research's work on [Weight Agnostic Neural Networks and
 * Devise ways to present the work accomplished in an attractive manner.
 
 # Demonstration
-## Top-10 Bare_minimum agents (8 neurons, experiment 0)
+## Top-12 Bare_minimum agents (8 neurons, experiment 0)
 Agents are presented in order of increasing loss-function: from left to right from top to bottom.
 | <img src="GIFs/experiment_0/CMA_ES-Bare_minimum-iteration_584-individual_6.gif" title="iter_584, ind_6"> <div><b>iter_584</b></div> | <img src="GIFs/experiment_0/CMA_ES-Bare_minimum-iteration_148-individual_15.gif" title="iter_148, ind_15"> <div><b>iter_148</b></div> | <img src="GIFs/experiment_0/CMA_ES-Bare_minimum-iteration_392-individual_9.gif" title="iter_392, ind_9"> <div><b>iter_392</b></div> | <img src="GIFs/experiment_0/CMA_ES-Bare_minimum-iteration_36-individual_16.gif" title="iter_36, ind_16"> <div><b>iter_36</b></div> | 
 |:--:|:--:|:--:|:--:|

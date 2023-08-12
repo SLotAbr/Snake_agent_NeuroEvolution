@@ -10,8 +10,8 @@ class Bare_minimum(torch.nn.Module):
 		super(Bare_minimum, self).__init__()
 		self.body = nn.Sequential(
 			nn.Linear(16, 5), # 85
-			nn.Sigmoid(),
 			nn.ReLU(),
+			nn.Sigmoid(),
 			nn.Linear(5, 3) # 103
 		)
 
@@ -24,11 +24,11 @@ class Agent_16(torch.nn.Module):
 		super(Agent_16, self).__init__()
 		self.body = nn.Sequential(
 			nn.Linear(16, 7),
-			nn.Sigmoid(),
 			nn.ReLU(),
+			nn.Sigmoid(),
 			nn.Linear(7, 6),
-			nn.Sigmoid(),
 			nn.ReLU(),
+			nn.Sigmoid(),
 			nn.Linear(6, 3),
 		)
 
@@ -41,14 +41,14 @@ class Agent_32(torch.nn.Module):
 		super(Agent_32, self).__init__()
 		self.body = nn.Sequential(
 			nn.Linear(16, 9),
-			nn.Sigmoid(),
 			nn.ReLU(),
+			nn.Sigmoid(),
 			nn.Linear(9, 11),
-			nn.Sigmoid(),
 			nn.ReLU(),
+			nn.Sigmoid(),
 			nn.Linear(11, 9),
-			nn.Sigmoid(),
 			nn.ReLU(),
+			nn.Sigmoid(),
 			nn.Linear(9, 3)
 		)
 
@@ -61,17 +61,17 @@ class Agent_64(torch.nn.Module):
 		super(Agent_64, self).__init__()
 		self.body = nn.Sequential(
 			nn.Linear(16, 13),
-			nn.Sigmoid(),
 			nn.ReLU(),
+			nn.Sigmoid(),
 			nn.Linear(13, 21),
-			nn.Sigmoid(),
 			nn.ReLU(),
+			nn.Sigmoid(),
 			nn.Linear(21, 18),
-			nn.Sigmoid(),
 			nn.ReLU(),
+			nn.Sigmoid(),
 			nn.Linear(18, 9),
-			nn.Sigmoid(),
 			nn.ReLU(),
+			nn.Sigmoid(),
 			nn.Linear(9, 3)
 		)
 
@@ -84,26 +84,26 @@ class Agent_128(torch.nn.Module):
 		super(Agent_128, self).__init__()
 		self.body = nn.Sequential(
 			nn.Linear(16, 10),
-			nn.Sigmoid(),
 			nn.ReLU(),
+			nn.Sigmoid(),
 			nn.Linear(10, 16),
-			nn.Sigmoid(),
 			nn.ReLU(),
+			nn.Sigmoid(),
 			nn.Linear(16, 27),
-			nn.Sigmoid(),
 			nn.ReLU(),
+			nn.Sigmoid(),
 			nn.Linear(27, 18),
-			nn.Sigmoid(),
 			nn.ReLU(),
+			nn.Sigmoid(),
 			nn.Linear(18, 27),
-			nn.Sigmoid(),
 			nn.ReLU(),
+			nn.Sigmoid(),
 			nn.Linear(27, 18),
-			nn.Sigmoid(),
 			nn.ReLU(),
+			nn.Sigmoid(),
 			nn.Linear(18, 9),
-			nn.Sigmoid(),
 			nn.ReLU(),
+			nn.Sigmoid(),
 			nn.Linear(9, 3)
 		)
 
